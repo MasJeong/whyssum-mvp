@@ -1,13 +1,21 @@
-# 직무핑 (JikmuPing)
+# 왜씀? (whyssum)
 
-직무별 기술 트렌드를 한눈에 보여주는 데이터 리포트 웹 서비스 MVP 프로젝트입니다.
+"요즘 왜 이걸 쓰는지"를 직무별로 빠르게 확인하는 멀티 직무 의사결정 MVP입니다.
 
 ## Tech Stack
 
-- Next.js 15 (App Router)
+- Next.js 16 (App Router)
 - TypeScript
 - Tailwind CSS 4
 - ESLint 9
+
+## MVP Scope
+
+- 직무 허브: 백엔드, 디자이너, PM
+- 직무별 트렌드 페이지
+- 상황추천 페이지 (안정형/속도형/확장형)
+- 기술 비교 페이지
+- 월간 인사이트 페이지
 
 ## Getting Started
 
@@ -31,6 +39,15 @@ npm run dev
 
 - `GET /api/recommendations?role=backend&teamSize=1~3명&timeline=2개월&priority=빠른 출시`
 - 입력 파라미터는 서버에서 검증되며, 기본 rate limit이 적용됩니다.
+
+## Main Routes
+
+- `/` 홈
+- `/roles` 직무 허브
+- `/trends/[role]` 직무별 트렌드
+- `/scenarios/[role]` 직무별 상황추천
+- `/compare` 기술/도구 비교
+- `/insights` 월간 인사이트
 
 ## Security
 

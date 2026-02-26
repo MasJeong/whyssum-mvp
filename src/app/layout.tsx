@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import Link from "next/link";
+import MobileBottomNav from "@/components/mobile-bottom-nav";
+import NavLinks from "@/components/nav-links";
 
 export const metadata: Metadata = {
   title: "왜씀?",
@@ -15,19 +17,19 @@ export default function RootLayout({
       <body>
         <header className="site-header">
           <div className="container header-inner">
-            <Link href="/" className="brand">
-              왜씀?
+            <Link href="/" className="brand-wrap">
+              <span className="brand">왜씀?</span>
+              <span className="brand-sub">직무별 선택 이유를 빠르게</span>
             </Link>
-            <nav className="nav">
-              <Link href="/roles">직무</Link>
-              <Link href="/trends/backend">트렌드</Link>
-              <Link href="/scenarios/backend">상황추천</Link>
-              <Link href="/compare">비교</Link>
-              <Link href="/insights">인사이트</Link>
-            </nav>
+            <NavLinks />
           </div>
         </header>
         {children}
+        <Link href="/scenarios/backend" className="mobile-sticky-cta">
+          상황추천 시작하기
+        </Link>
+        <MobileBottomNav />
+        <footer className="container site-footer">왜씀? MVP · 공개 데이터 구조 기반 의사결정 실험</footer>
       </body>
     </html>
   );

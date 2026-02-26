@@ -19,29 +19,44 @@ export default async function TrendByRolePage({ params }: PageProps) {
   const metrics = trendData[roleKey];
 
   return (
-    <main className="container">
+    <main className="container page">
       <section className="card">
         <p className="eyebrow">직무별 트렌드</p>
         <h1>{roleInfo.name}</h1>
-        <p>{roleInfo.oneLiner}</p>
+        <p className="muted">{roleInfo.oneLiner}</p>
+        <div className="role-switch" style={{ marginTop: "0.75rem" }}>
+          {roles.map((item) => (
+            <Link
+              key={item.key}
+              href={`/trends/${item.key}`}
+              className={`role-pill ${item.key === roleKey ? "role-pill-active" : ""}`}
+            >
+              {item.name}
+            </Link>
+          ))}
+        </div>
       </section>
 
       <section className="grid grid-4">
-        <article className="card stat">
+        <article className="card kpi">
           <p>평균 채택률</p>
           <strong>{Math.round(metrics.reduce((sum, row) => sum + row.adoptionRate, 0) / metrics.length)}%</strong>
+          <small>해당 직무의 기술 사용 비중 평균</small>
         </article>
-        <article className="card stat">
+        <article className="card kpi">
           <p>평균 성장률</p>
           <strong>{Math.round(metrics.reduce((sum, row) => sum + row.growthRate, 0) / metrics.length)}%</strong>
+          <small>전년 대비 상승 속도</small>
         </article>
-        <article className="card stat">
+        <article className="card kpi">
           <p>평균 수요지수</p>
           <strong>{Math.round(metrics.reduce((sum, row) => sum + row.demandIndex, 0) / metrics.length)}</strong>
+          <small>채용/실무 요구 통합 지수</small>
         </article>
-        <article className="card stat">
+        <article className="card kpi">
           <p>데이터 시점</p>
           <strong>2026.02</strong>
+          <small>월간 샘플 업데이트 기준</small>
         </article>
       </section>
 
@@ -78,10 +93,12 @@ export default async function TrendByRolePage({ params }: PageProps) {
         </div>
       </section>
 
-      <section className="card muted-note">
-        <p>{sourceNote}</p>
-        <Link href={`/scenarios/${roleKey}`} className="text-link">
-          이 직무 상황추천 보러가기
+      <section className="card split-note">
+        <div>
+          <p className="muted">{sourceNote}</p>
+        </div>
+        <Link href={`/scenarios/${roleKey}`} className="button button-primary">
+          이 직무 상황추천 보기
         </Link>
       </section>
     </main>
