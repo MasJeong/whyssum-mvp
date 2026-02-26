@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import Link from "next/link";
 import MobileBottomNav from "@/components/mobile-bottom-nav";
+import MobileStickyCta from "@/components/mobile-sticky-cta";
 import NavLinks from "@/components/nav-links";
 
 export const metadata: Metadata = {
@@ -25,11 +26,22 @@ export default function RootLayout({
           </div>
         </header>
         {children}
-        <Link href="/scenarios/backend" className="mobile-sticky-cta">
-          상황추천 시작하기
-        </Link>
+        <MobileStickyCta />
         <MobileBottomNav />
-        <footer className="container site-footer">왜씀? MVP · 공개 데이터 구조 기반 의사결정 실험</footer>
+        <footer className="container site-footer">
+          <div className="footer-grid">
+            <div>
+              <strong>왜씀?</strong>
+              <p>직무별 선택 이유를 빠르게 확인하는 데이터 가이드</p>
+            </div>
+            <div className="footer-links">
+              <Link href="/roles">직무</Link>
+              <Link href="/trends/backend">트렌드</Link>
+              <Link href="/scenarios/backend">상황추천</Link>
+              <Link href="/insights">인사이트</Link>
+            </div>
+          </div>
+        </footer>
       </body>
     </html>
   );

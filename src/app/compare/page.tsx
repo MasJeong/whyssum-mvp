@@ -11,7 +11,7 @@ export default function ComparePage() {
       <section className="card">
         <p className="eyebrow">비교</p>
         <h1>같은 상황에서 무엇이 더 맞는지 비교</h1>
-        <p className="muted">초기 MVP에서는 백엔드 대표 기술 3개를 기준으로 비교 예시를 제공합니다.</p>
+        <p className="muted">직무를 바꿔가며 기술/도구 후보를 직접 선택해 비교할 수 있습니다.</p>
       </section>
 
       <CompareInteractive />

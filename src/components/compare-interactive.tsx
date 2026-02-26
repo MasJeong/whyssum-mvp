@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import ProgressBar from "@/components/progress-bar";
+import { roles, trendData, type RoleKey } from "@/lib/mvp-data";
 
 type CompareItem = {
   name: string;
@@ -12,22 +13,49 @@ type CompareItem = {
   cost: number;
 };
 
-const compareItems: CompareItem[] = [
-  { name: "Node.js", adoption: 44, growth: 7, difficulty: 35, complexity: 46, cost: 41 },
-  { name: "Spring Boot", adoption: 31, growth: 4, difficulty: 58, complexity: 63, cost: 54 },
-  { name: "Go", adoption: 16, growth: 9, difficulty: 62, complexity: 55, cost: 38 },
-  { name: "FastAPI", adoption: 9, growth: 5, difficulty: 32, complexity: 28, cost: 26 },
-  { name: "NestJS", adoption: 24, growth: 8, difficulty: 37, complexity: 44, cost: 33 },
-];
+const difficultyMap: Record<"낮음" | "중간" | "높음", number> = {
+  낮음: 32,
+  중간: 56,
+  높음: 74,
+};
 
-const defaultSelected = new Set(["Node.js", "Spring Boot", "Go"]);
+function toCompareItems(role: RoleKey): CompareItem[] {
+  return trendData[role].map((item) => {
+    const difficulty = difficultyMap[item.difficulty];
+    const complexity = Math.round(Math.min(90, difficulty * 0.65 + item.demandIndex * 0.35));
+    const cost = Math.round(Math.min(90, 95 - item.adoptionRate + complexity * 0.25));
+
+    return {
+      name: item.tool,
+      adoption: item.adoptionRate,
+      growth: item.growthRate,
+      difficulty,
+      complexity,
+      cost,
+    };
+  });
+}
+
+const defaultSelectedByRole: Record<RoleKey, string[]> = {
+  backend: ["Node.js", "Spring Boot", "Go"],
+  designer: ["Figma", "Framer", "Rive"],
+  pm: ["Notion", "Jira", "Linear"],
+};
 
 export default function CompareInteractive() {
-  const [selected, setSelected] = useState<Set<string>>(defaultSelected);
+  const [role, setRole] = useState<RoleKey>("backend");
+  const [selected, setSelected] = useState<Set<string>>(new Set(defaultSelectedByRole.backend));
+
+  const compareItems = useMemo(() => toCompareItems(role), [role]);
+
+  const switchRole = (nextRole: RoleKey) => {
+    setRole(nextRole);
+    setSelected(new Set(defaultSelectedByRole[nextRole]));
+  };
 
   const selectedItems = useMemo(
     () => compareItems.filter((item) => selected.has(item.name)),
-    [selected],
+    [compareItems, selected],
   );
 
   const toggleSelection = (name: string) => {
@@ -53,6 +81,18 @@ export default function CompareInteractive() {
   return (
     <>
       <section className="card">
+        <div className="role-switch">
+          {roles.map((item) => (
+            <button
+              key={item.key}
+              type="button"
+              className={`role-pill ${item.key === role ? "role-pill-active" : ""}`}
+              onClick={() => switchRole(item.key)}
+            >
+              {item.name}
+            </button>
+          ))}
+        </div>
         <h2>비교할 기술 선택 (최대 4개)</h2>
         <div className="checkbox-grid">
           {compareItems.map((item) => {
@@ -71,6 +111,9 @@ export default function CompareInteractive() {
             );
           })}
         </div>
+        <p className="inline-note" style={{ marginTop: "0.6rem" }}>
+          현재 비교 기준: {roles.find((item) => item.key === role)?.name}
+        </p>
       </section>
 
       <section className="card">

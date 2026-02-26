@@ -29,3 +29,21 @@
 - `src/components/nav-links.tsx`: 현재 경로 기반 active 네비
 - `src/components/mobile-bottom-nav.tsx`: 모바일 하단 탭 네비
 - `src/components/compare-interactive.tsx`: 체크박스 기반 비교 대상 선택(최소 1개, 최대 4개)
+
+## 추가 반영 (웹사이트형 고도화)
+
+- `src/app/layout.tsx`
+  - 푸터 실서비스형 구성(링크/설명)으로 교체
+  - 모바일 스티키 CTA를 경로 조건부 컴포넌트로 분리
+- `src/app/page.tsx`
+  - 랜딩 페이지 구조 강화(히어로, 빠른 진입, 신뢰 요소, FAQ)
+- `src/components/mobile-sticky-cta.tsx`
+  - `/scenarios/*` 경로에서 스티키 CTA 숨김 처리
+- `src/components/scenario-explorer.tsx`
+  - 상황 필터 기반 API 재계산 흐름 추가
+- `src/components/compare-interactive.tsx`
+  - 직무 전환 기반 동적 비교 데이터 생성
+- `src/app/globals.css`
+  - 모바일 깨짐 완화 및 랜딩/FAQ/푸터/폼 스타일 확장
+- `review_docs/requirements.md`
+  - 실제 웹사이트형 요건 정리 및 구현 매핑 문서 추가

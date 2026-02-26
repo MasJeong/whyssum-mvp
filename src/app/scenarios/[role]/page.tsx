@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { recommendations, roles, scenarios, type RoleKey } from "@/lib/mvp-data";
+import ScenarioExplorer from "@/components/scenario-explorer";
+import { roles, scenarios, type RoleKey } from "@/lib/mvp-data";
 
 type PageProps = {
   params: Promise<{ role: string }>;
@@ -16,8 +17,6 @@ export default async function ScenarioPage({ params }: PageProps) {
   }
 
   const roleScenarios = scenarios.filter((item) => item.role === roleKey);
-  const picks = recommendations[roleKey];
-
   return (
     <main className="container page">
       <section className="card">
@@ -48,27 +47,7 @@ export default async function ScenarioPage({ params }: PageProps) {
         </div>
       </section>
 
-      <section className="grid grid-3">
-        {picks.map((pick) => (
-          <article className="card" key={pick.label}>
-            <p className="eyebrow">{pick.label}</p>
-            <h2>{pick.stack}</h2>
-            <p className="muted">적합도 {pick.fitScore}점</p>
-            <p className="list-title">장점</p>
-            <ul>
-              {pick.pros.map((pro) => (
-                <li key={pro}>{pro}</li>
-              ))}
-            </ul>
-            <p className="list-title">리스크</p>
-            <ul>
-              {pick.risks.map((risk) => (
-                <li key={risk}>{risk}</li>
-              ))}
-            </ul>
-          </article>
-        ))}
-      </section>
+      <ScenarioExplorer role={roleKey} />
 
       <section className="card split-note">
         <div>
