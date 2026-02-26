@@ -26,3 +26,13 @@ npm run dev
 - `npm run build` - 프로덕션 빌드
 - `npm run start` - 프로덕션 서버 실행
 - `npm run lint` - 린트 실행
+
+## API Example
+
+- `GET /api/recommendations?role=backend&teamSize=1~3명&timeline=2개월&priority=빠른 출시`
+- 입력 파라미터는 서버에서 검증되며, 기본 rate limit이 적용됩니다.
+
+## Security
+
+- 기본 보안 헤더, 입력 검증, rate limit이 적용되어 있습니다.
+- 자세한 내용은 `SECURITY.md`를 참고하세요.

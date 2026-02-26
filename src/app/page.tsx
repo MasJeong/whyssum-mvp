@@ -1,33 +1,47 @@
-const cards = [
-  { role: "백엔드", trend: "TypeScript +12%" },
-  { role: "프론트엔드", trend: "Next.js +18%" },
-  { role: "디자이너", trend: "Figma AI +9%" },
-  { role: "의료", trend: "EMR 자동화 +7%" },
-];
+import Link from "next/link";
+import { roles, sourceNote } from "@/lib/mvp-data";
 
 export default function Home() {
   return (
     <main className="container">
-      <section className="card" style={{ marginBottom: "1rem" }}>
-        <h1 style={{ margin: 0, fontSize: "2rem" }}>직무핑</h1>
-        <p style={{ marginTop: "0.5rem", marginBottom: 0 }}>
-          직무별 기술 트렌드를 빠르게 읽는 데이터 리포트 MVP
+      <section className="hero card">
+        <p className="eyebrow">가벼운 의사결정 플랫폼</p>
+        <h1>왜씀?</h1>
+        <p>
+          직무별로 요즘 쓰는 도구와 기술을 보고, 지금 내 상황에 맞는 선택지를 바로 확인하세요.
         </p>
+        <div className="button-row">
+          <Link href="/roles" className="button button-primary">
+            직무 고르기
+          </Link>
+          <Link href="/scenarios/backend" className="button button-ghost">
+            상황추천 바로 보기
+          </Link>
+        </div>
       </section>
 
-      <section
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-          gap: "0.75rem",
-        }}
-      >
-        {cards.map((item) => (
-          <article key={item.role} className="card">
-            <h2 style={{ margin: 0, fontSize: "1rem" }}>{item.role}</h2>
-            <p style={{ marginTop: "0.5rem", color: "var(--accent)" }}>{item.trend}</p>
+      <section className="grid grid-3">
+        {roles.map((role) => (
+          <article key={role.key} className="card">
+            <h2>{role.name}</h2>
+            <p>{role.oneLiner}</p>
+            <div className="chip-row">
+              {role.strengths.map((tag) => (
+                <span className="chip" key={tag}>
+                  {tag}
+                </span>
+              ))}
+            </div>
+            <Link href={`/trends/${role.key}`} className="text-link">
+              트렌드 보기
+            </Link>
           </article>
         ))}
+      </section>
+
+      <section className="card muted-note">
+        <strong>데이터 안내</strong>
+        <p>{sourceNote}</p>
       </section>
     </main>
   );

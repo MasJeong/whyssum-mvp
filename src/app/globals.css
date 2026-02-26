@@ -1,10 +1,12 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f7f8fc;
-  --foreground: #13162a;
+  --background: #f3f6ff;
+  --foreground: #151a2f;
   --card: #ffffff;
-  --accent: #3c7df6;
+  --accent: #2f6df4;
+  --accent-soft: #e4eeff;
+  --line: rgba(21, 28, 49, 0.12);
 }
 
 * {
@@ -18,17 +20,243 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: "Pretendard", "Noto Sans KR", sans-serif;
+  line-height: 1.5;
 }
 
 .container {
   max-width: 1040px;
   margin: 0 auto;
-  padding: 2rem 1rem;
+  padding: 1.25rem 1rem 2rem;
 }
 
 .card {
   background: var(--card);
-  border: 1px solid rgba(20, 30, 60, 0.08);
+  border: 1px solid var(--line);
   border-radius: 16px;
   padding: 1rem;
+  margin-bottom: 0.9rem;
+}
+
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  backdrop-filter: blur(8px);
+  background: rgba(243, 246, 255, 0.88);
+  border-bottom: 1px solid var(--line);
+}
+
+.header-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-top: 0.7rem;
+  padding-bottom: 0.7rem;
+}
+
+.brand {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: var(--foreground);
+  text-decoration: none;
+}
+
+.nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.nav a {
+  color: #324062;
+  text-decoration: none;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+h1,
+h2,
+p {
+  margin: 0;
+}
+
+h1 {
+  font-size: clamp(1.4rem, 2.3vw, 2rem);
+  margin-bottom: 0.5rem;
+}
+
+h2 {
+  font-size: 1.02rem;
+  margin-bottom: 0.35rem;
+}
+
+p {
+  color: #2a3555;
+}
+
+.hero {
+  padding: 1.15rem;
+}
+
+.eyebrow {
+  display: inline-flex;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 0.8rem;
+  font-weight: 700;
+  margin-bottom: 0.55rem;
+}
+
+.grid {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.grid-2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.grid-3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.grid-4 {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.button-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  margin-top: 0.8rem;
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  padding: 0.45rem 0.95rem;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 0.88rem;
+}
+
+.button-primary {
+  background: var(--accent);
+  color: #fff;
+}
+
+.button-ghost {
+  border-color: var(--line);
+  color: var(--foreground);
+  background: #fff;
+}
+
+.chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.7rem;
+}
+
+.chip {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 0.18rem 0.6rem;
+  font-size: 0.78rem;
+  color: #3a4c75;
+  background: #fff;
+}
+
+.text-link {
+  display: inline-block;
+  margin-top: 0.8rem;
+  color: var(--accent);
+  text-decoration: none;
+  font-weight: 700;
+}
+
+.stat strong {
+  display: block;
+  font-size: 1.35rem;
+  margin-top: 0.35rem;
+}
+
+.table-wrap {
+  overflow-x: auto;
+  margin-top: 0.8rem;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 640px;
+}
+
+th,
+td {
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+  padding: 0.55rem 0.4rem;
+  font-size: 0.9rem;
+}
+
+th {
+  color: #44527a;
+  font-size: 0.8rem;
+}
+
+.meter-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.progress-track {
+  width: 100px;
+  height: 8px;
+  border-radius: 999px;
+  background: #dde6fd;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #84adff, #2f6df4);
+}
+
+.list-title {
+  margin-top: 0.65rem;
+  margin-bottom: 0.25rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+ul {
+  margin: 0;
+  padding-left: 1.05rem;
+}
+
+.muted-note p {
+  font-size: 0.88rem;
+  color: #4a587f;
+}
+
+@media (max-width: 860px) {
+  .grid-4,
+  .grid-3,
+  .grid-2 {
+    grid-template-columns: 1fr;
+  }
+
+  .header-inner {
+    align-items: flex-start;
+    flex-direction: column;
+  }
 }
