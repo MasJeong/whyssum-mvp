@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import ProgressBar from "@/components/progress-bar";
-import { roles, sourceNote, trendData, type RoleKey } from "@/lib/mvp-data";
+import { getRoleTrendMetrics } from "@/lib/live-role-trends";
+import { roles, sourceNote, type RoleKey } from "@/lib/mvp-data";
 
 type PageProps = {
   params: Promise<{ role: string }>;
@@ -16,7 +17,8 @@ export default async function TrendByRolePage({ params }: PageProps) {
     notFound();
   }
 
-  const metrics = trendData[roleKey];
+  const trendResult = await getRoleTrendMetrics(roleKey);
+  const metrics = trendResult.metrics;
 
   return (
     <main className="container page">
@@ -24,6 +26,10 @@ export default async function TrendByRolePage({ params }: PageProps) {
         <p className="eyebrow">직무별 트렌드</p>
         <h1>{roleInfo.name}</h1>
         <p className="muted">{roleInfo.oneLiner}</p>
+        <div className="chip-row" style={{ marginTop: "0.45rem" }}>
+          <span className="chip">데이터 모드: {trendResult.mode === "live" ? "LIVE" : "FALLBACK"}</span>
+          <span className="chip">소스: {trendResult.source}</span>
+        </div>
         <div className="role-switch" style={{ marginTop: "0.75rem" }}>
           {roles.map((item) => (
             <Link
@@ -96,6 +102,9 @@ export default async function TrendByRolePage({ params }: PageProps) {
       <section className="card split-note">
         <div>
           <p className="muted">{sourceNote}</p>
+          <p className="muted" style={{ marginTop: "0.25rem" }}>
+            최신 갱신: {new Date(trendResult.fetchedAt).toLocaleString("ko-KR")}
+          </p>
         </div>
         <Link href={`/scenarios/${roleKey}`} className="button button-primary">
           이 직무 상황추천 보기

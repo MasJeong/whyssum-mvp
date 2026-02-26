@@ -39,6 +39,9 @@ npm run dev
 
 - `GET /api/recommendations?role=backend&teamSize=1~3명&timeline=2개월&priority=빠른 출시`
 - 입력 파라미터는 서버에서 검증되며, 기본 rate limit이 적용됩니다.
+- `GET /api/trends/backend`
+  - GitHub 공개 메타데이터(stars) + 최근 30일 커밋 활동 기반으로 직무별 지표를 계산합니다.
+  - 외부 API 실패 시 샘플 데이터로 fallback 합니다.
 
 ## Main Routes
 

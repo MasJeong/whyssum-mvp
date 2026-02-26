@@ -18,6 +18,7 @@
 - 기존 보안 미들웨어와 API rate limit은 유지됨
 - 현재 rate limit은 메모리 기반이라 다중 인스턴스/재시작 환경에서 약함
 - 운영 전 Redis 기반 분산 rate limit 전환 권장
+- GitHub 공개 API는 무인증 호출 시 rate limit이 낮아 트래픽 증가 시 fallback 빈도가 올라갈 수 있음
 
 ## QA 권장 시나리오
 
@@ -27,3 +28,4 @@
 4. 전체 페이지에서 버튼/링크 hover, focus 스타일 확인
 5. `/scenarios/*` 페이지에서 스티키 CTA 숨김 동작 확인
 6. 상황추천 필터 변경 후 "추천 다시 계산" 클릭 시 결과 유지/에러 fallback 확인
+7. `/trends/[role]`, `/compare`에서 `LIVE/FALLBACK` 모드 전환 표시 확인

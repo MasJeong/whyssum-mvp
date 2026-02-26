@@ -1,8 +1,9 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import ProgressBar from "@/components/progress-bar";
 import { roles, trendData, type RoleKey } from "@/lib/mvp-data";
+import type { TrendMetric } from "@/lib/mvp-data";
 
 type CompareItem = {
   name: string;
@@ -19,23 +20,6 @@ const difficultyMap: Record<"낮음" | "중간" | "높음", number> = {
   높음: 74,
 };
 
-function toCompareItems(role: RoleKey): CompareItem[] {
-  return trendData[role].map((item) => {
-    const difficulty = difficultyMap[item.difficulty];
-    const complexity = Math.round(Math.min(90, difficulty * 0.65 + item.demandIndex * 0.35));
-    const cost = Math.round(Math.min(90, 95 - item.adoptionRate + complexity * 0.25));
-
-    return {
-      name: item.tool,
-      adoption: item.adoptionRate,
-      growth: item.growthRate,
-      difficulty,
-      complexity,
-      cost,
-    };
-  });
-}
-
 const defaultSelectedByRole: Record<RoleKey, string[]> = {
   backend: ["Node.js", "Spring Boot", "Go"],
   designer: ["Figma", "Framer", "Rive"],
@@ -45,8 +29,65 @@ const defaultSelectedByRole: Record<RoleKey, string[]> = {
 export default function CompareInteractive() {
   const [role, setRole] = useState<RoleKey>("backend");
   const [selected, setSelected] = useState<Set<string>>(new Set(defaultSelectedByRole.backend));
+  const [liveMetrics, setLiveMetrics] = useState<TrendMetric[] | null>(null);
+  const [mode, setMode] = useState<"live" | "fallback" | "loading">("loading");
+  const [loadError, setLoadError] = useState<string | null>(null);
 
-  const compareItems = useMemo(() => toCompareItems(role), [role]);
+  useEffect(() => {
+    let active = true;
+    const fetchMetrics = async () => {
+      setMode("loading");
+      setLoadError(null);
+      try {
+        const response = await fetch(`/api/trends/${role}`, {
+          method: "GET",
+          headers: { Accept: "application/json" },
+          cache: "no-store",
+        });
+        const payload = (await response.json()) as {
+          metrics?: TrendMetric[];
+          mode?: "live" | "fallback";
+          error?: string;
+        };
+
+        if (!response.ok || !payload.metrics) {
+          throw new Error(payload.error ?? "트렌드 데이터를 불러오지 못했습니다.");
+        }
+
+        if (!active) return;
+        setLiveMetrics(payload.metrics);
+        setMode(payload.mode ?? "fallback");
+      } catch (error) {
+        if (!active) return;
+        setLiveMetrics(null);
+        setMode("fallback");
+        setLoadError(error instanceof Error ? error.message : "알 수 없는 오류");
+      }
+    };
+
+    fetchMetrics();
+    return () => {
+      active = false;
+    };
+  }, [role]);
+
+  const compareItems = useMemo(() => {
+    const input = liveMetrics ?? trendData[role];
+    return input.map((item) => {
+      const difficulty = difficultyMap[item.difficulty];
+      const complexity = Math.round(Math.min(90, difficulty * 0.65 + item.demandIndex * 0.35));
+      const cost = Math.round(Math.min(90, 95 - item.adoptionRate + complexity * 0.25));
+
+      return {
+        name: item.tool,
+        adoption: item.adoptionRate,
+        growth: item.growthRate,
+        difficulty,
+        complexity,
+        cost,
+      };
+    });
+  }, [liveMetrics, role]);
 
   const switchRole = (nextRole: RoleKey) => {
     setRole(nextRole);
@@ -112,8 +153,9 @@ export default function CompareInteractive() {
           })}
         </div>
         <p className="inline-note" style={{ marginTop: "0.6rem" }}>
-          현재 비교 기준: {roles.find((item) => item.key === role)?.name}
+          현재 비교 기준: {roles.find((item) => item.key === role)?.name} · 데이터 모드: {mode.toUpperCase()}
         </p>
+        {loadError ? <p className="error-text">{loadError} (샘플 데이터로 표시 중)</p> : null}
       </section>
 
       <section className="card">

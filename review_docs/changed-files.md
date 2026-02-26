@@ -47,3 +47,15 @@
   - 모바일 깨짐 완화 및 랜딩/FAQ/푸터/폼 스타일 확장
 - `review_docs/requirements.md`
   - 실제 웹사이트형 요건 정리 및 구현 매핑 문서 추가
+
+## 추가 반영 (실데이터 연동 1차)
+
+- `src/lib/live-role-trends.ts`
+  - GitHub 공개 API(`repos`, `commits`) 기반 트렌드 지표 계산 로직 추가
+  - 12시간 캐시 + 외부 실패 시 샘플 데이터 fallback
+- `src/app/api/trends/[role]/route.ts`
+  - role 기반 트렌드 API 엔드포인트 추가
+- `src/app/trends/[role]/page.tsx`
+  - 트렌드 페이지를 live/fallback 데이터 모드와 갱신 시점 표시로 확장
+- `src/components/compare-interactive.tsx`
+  - 비교 화면도 `/api/trends/[role]` 연동 데이터 사용으로 업그레이드

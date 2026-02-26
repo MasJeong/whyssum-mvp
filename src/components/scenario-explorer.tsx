@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { recommendations as fallbackRecommendations, scenarios, type Recommendation, type RoleKey } from "@/lib/mvp-data";
 
 type ScenarioExplorerProps = {
@@ -34,6 +34,14 @@ export default function ScenarioExplorer({ role }: ScenarioExplorerProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [items, setItems] = useState<Recommendation[]>(fallbackRecommendations[role]);
+
+  useEffect(() => {
+    setTeamSize(teamOptions[0] ?? "");
+    setTimeline(timelineOptions[0] ?? "");
+    setPriority(priorityOptions[0] ?? "");
+    setItems(fallbackRecommendations[role]);
+    setError(null);
+  }, [priorityOptions, role, teamOptions, timelineOptions]);
 
   const searchRecommendations = async () => {
     setLoading(true);
