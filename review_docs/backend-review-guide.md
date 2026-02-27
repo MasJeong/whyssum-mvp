@@ -6,10 +6,12 @@
 
 1. `src/app/api/recommendations/route.ts`
 2. `src/app/api/trends/[role]/route.ts`
-3. `src/lib/live-role-trends.ts`
-4. `src/lib/security/rate-limit.ts`
-5. `src/lib/security/validation.ts`
-6. `src/lib/mvp-data.ts`
+3. `src/app/api/briefings/route.ts`
+4. `src/lib/live-role-trends.ts`
+5. `src/lib/briefing-data.ts`
+6. `src/lib/security/rate-limit.ts`
+7. `src/lib/security/validation.ts`
+8. `src/lib/mvp-data.ts`
 
 위 6개만 보면, 데이터 요청/검증/가공/응답까지 핵심 로직을 거의 다 파악할 수 있습니다.
 
@@ -21,6 +23,7 @@
 - 상황추천 조건 입력 후 재계산 (`/scenarios/[role]` + `/api/recommendations`)
 - 비교 화면에서 직무 전환 + 다중 선택 비교 (`/compare` + `/api/trends/[role]`)
 - 관심리스트 저장/조회 (`/watchlist`, localStorage)
+- 브리핑 조회/필터 (`/briefings` + `/api/briefings`)
 - 기본 보안 적용
   - 보안 헤더 (`middleware.ts`)
   - 입력 검증 (`zod`)
@@ -58,6 +61,19 @@
   - `getRoleTrendMetrics(role)` 호출
   - live 성공 시 `mode: live`
   - 실패 시 `mode: fallback` + 샘플 데이터
+
+### C. 브리핑 API
+
+- 경로: `GET /api/briefings`
+- 파일: `src/app/api/briefings/route.ts`
+- 입력 쿼리:
+  - `role`: `all | backend | designer | pm`
+  - `impact`: `all | high | medium | low`
+  - `periodDays`: 1~180
+- 응답:
+  - 브리핑 카드 배열
+  - 적용 필터
+  - count, fetchedAt
 
 ---
 

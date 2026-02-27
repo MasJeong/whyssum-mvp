@@ -100,3 +100,18 @@
   - 관심리스트 내비게이션 경로 추가
 - `src/app/globals.css`
   - 신뢰도 배지, 시계열 스파크라인, 관심 버튼 스타일 추가
+
+## 추가 반영 (브리핑 메뉴)
+
+- `review_docs/briefing-implementation-plan.md`
+  - 브리핑 기능 구현 계획 문서 추가
+- `src/lib/briefing-data.ts`
+  - 브리핑 데이터 모델/시드/필터 함수 추가
+- `src/app/api/briefings/route.ts`
+  - 브리핑 조회 API 추가(직무/영향도/기간 필터 + rate limit)
+- `src/components/briefing-board.tsx`
+  - 브리핑 필터 및 카드 UI/동선 구현
+- `src/app/briefings/page.tsx`
+  - 브리핑 전용 페이지 추가
+- `src/components/nav-links.tsx`, `src/components/mobile-bottom-nav.tsx`, `src/app/layout.tsx`
+  - 상단/하단/푸터 네비게이션에 브리핑 메뉴 추가

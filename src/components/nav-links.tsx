@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 const navItems = [
   { href: "/roles", label: "직무" },
   { href: "/trends/backend", label: "트렌드" },
+  { href: "/briefings", label: "브리핑" },
   { href: "/scenarios/backend", label: "상황추천" },
   { href: "/compare", label: "비교" },
   { href: "/watchlist", label: "관심리스트" },

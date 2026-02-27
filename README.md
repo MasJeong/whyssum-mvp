@@ -15,6 +15,7 @@
 - 직무별 트렌드 페이지
 - 상황추천 페이지 (필터 기반 재계산 + 안정형/속도형/확장형)
 - 기술 비교 페이지 (직무 전환 + 다중 선택 비교)
+- 트렌드 브리핑 페이지 (직무/기간/영향도 필터)
 - 관심리스트 페이지 (로컬 저장 기반)
 - 월간 인사이트 페이지
 
@@ -44,12 +45,15 @@ npm run dev
   - GitHub 공개 메타데이터(stars/commits/contributors) + npm/PyPI 보조 신호를 반영해 직무별 지표를 계산합니다.
   - 추가 지표: 활동성(activity), 커뮤니티(community), 안정성(stability), 신뢰도(confidence)
   - 일부 소스 실패 시 부분 fallback, 전체 실패 시 샘플 데이터 fallback
+- `GET /api/briefings?role=backend&impact=high&periodDays=30`
+  - 직무/영향도/기간 조건에 맞는 브리핑 카드 목록을 반환합니다.
 
 ## Main Routes
 
 - `/` 홈
 - `/roles` 직무 허브
 - `/trends/[role]` 직무별 트렌드
+- `/briefings` 트렌드 브리핑
 - `/scenarios/[role]` 직무별 상황추천
 - `/compare` 기술/도구 비교
 - `/watchlist` 관심리스트

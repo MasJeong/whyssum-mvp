@@ -5,10 +5,10 @@ import { usePathname } from "next/navigation";
 
 const tabs = [
   { href: "/roles", label: "직무" },
+  { href: "/briefings", label: "브리핑" },
   { href: "/scenarios/backend", label: "추천" },
   { href: "/compare", label: "비교" },
   { href: "/watchlist", label: "관심" },
-  { href: "/insights", label: "인사이트" },
 ];
 
 export default function MobileBottomNav() {
