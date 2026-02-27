@@ -20,6 +20,7 @@
 - 직무별 트렌드 조회 (`/trends/[role]`)
 - 상황추천 조건 입력 후 재계산 (`/scenarios/[role]` + `/api/recommendations`)
 - 비교 화면에서 직무 전환 + 다중 선택 비교 (`/compare` + `/api/trends/[role]`)
+- 관심리스트 저장/조회 (`/watchlist`, localStorage)
 - 기본 보안 적용
   - 보안 헤더 (`middleware.ts`)
   - 입력 검증 (`zod`)
@@ -40,6 +41,7 @@
   - `src/lib/security/validation.ts`의 `recommendationQuerySchema`
 - 응답:
   - 추천안 목록(안정형/속도형/확장형)
+  - 추천안별 상세 근거(`reasons`)
   - 필터 정보 echo
   - 관련 시나리오 목록
   - source note
@@ -68,6 +70,9 @@
 - GitHub 공개 API 2종
   1. `/repos/{owner}/{repo}` -> `stargazers_count`
   2. `/repos/{owner}/{repo}/commits?since=...` -> 최근 30일 커밋 수
+- npm 다운로드 API (가능한 도구)
+- PyPI 통계 API (가능한 도구)
+- catalog signal(보조 신호)
 
 ### 계산 방식
 
@@ -76,11 +81,13 @@
 - commit 수 기반 -> `growthRate`
 - adoption + growth + stars 조합 -> `demandIndex`
 - 추가 지표: `activityScore`, `communityScore`, `stabilityScore`
+- 추가 지표: `confidenceScore`, `trustLevel`, `trendSeries`
 
 ### 안정성
 
 - 메모리 캐시 TTL 12시간
 - 일부 repo 실패 시 해당 항목만 fallback snapshot 적용
+- npm/PyPI 개별 실패 시 해당 소스만 제외하고 계산
 - 전체 호출 실패 시 `mvp-data.ts` fallback
 - 결과에 `mode`, `source`, `fetchedAt` 포함
 

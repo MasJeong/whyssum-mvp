@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import ProgressBar from "@/components/progress-bar";
+import WatchlistToggle from "@/components/watchlist-toggle";
 import { roles, trendData, type RoleKey } from "@/lib/mvp-data";
 import type { TrendMetric } from "@/lib/mvp-data";
 
@@ -15,6 +16,8 @@ type CompareItem = {
   activity: number;
   community: number;
   stability: number;
+  confidence: number;
+  trustLevel: "High" | "Medium" | "Low";
 };
 
 const difficultyMap: Record<"낮음" | "중간" | "높음", number> = {
@@ -91,6 +94,8 @@ export default function CompareInteractive() {
         activity: item.activityScore ?? Math.round(item.growthRate * 3),
         community: item.communityScore ?? item.demandIndex,
         stability: item.stabilityScore ?? item.demandIndex,
+        confidence: item.confidenceScore ?? 60,
+        trustLevel: item.trustLevel ?? "Medium",
       };
     });
   }, [liveMetrics, role]);
@@ -145,16 +150,18 @@ export default function CompareInteractive() {
           {compareItems.map((item) => {
             const checked = selected.has(item.name);
             return (
-              <label key={item.name} className={`check-card ${checked ? "check-card-on" : ""}`}>
+              <div key={item.name} className={`check-card ${checked ? "check-card-on" : ""}`}>
                 <input
+                  id={`compare-${role}-${item.name}`}
                   type="checkbox"
                   checked={checked}
                   onChange={() => toggleSelection(item.name)}
                   aria-label={`${item.name} 비교 선택`}
                 />
-                <span>{item.name}</span>
+                <label htmlFor={`compare-${role}-${item.name}`}>{item.name}</label>
                 <small>채택 {item.adoption}%</small>
-              </label>
+                <WatchlistToggle itemKey={`${role}:${item.name}`} label={item.name} />
+              </div>
             );
           })}
         </div>
@@ -179,6 +186,7 @@ export default function CompareInteractive() {
                 <th>활동성</th>
                 <th>커뮤니티</th>
                 <th>안정성</th>
+                <th>신뢰도</th>
               </tr>
             </thead>
             <tbody>
@@ -199,6 +207,11 @@ export default function CompareInteractive() {
                   <td>{item.activity}</td>
                   <td>{item.community}</td>
                   <td>{item.stability}</td>
+                  <td>
+                    <span className={`trust-badge trust-${item.trustLevel.toLowerCase()}`}>
+                      {item.trustLevel} ({item.confidence})
+                    </span>
+                  </td>
                 </tr>
               ))}
             </tbody>

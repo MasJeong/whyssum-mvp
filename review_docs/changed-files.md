@@ -76,3 +76,27 @@
   - 활동/커뮤니티/안정성 KPI 및 컬럼 추가
 - `src/components/compare-interactive.tsx`
   - 비교표에 활동성/커뮤니티/안정성 컬럼 추가
+
+## 추가 반영 (고도화 3차)
+
+- `review_docs/phase3-implementation-plan.md`
+  - 신뢰도/추천근거/TopN/시계열/프리셋/관심리스트/멀티소스 계획 문서 추가
+- `src/app/api/recommendations/route.ts`
+  - 추천안별 상세 근거(`reasons`) 제공 및 조건별 가중치 로직 보강
+- `src/components/scenario-explorer.tsx`
+  - 맞춤 시나리오 프리셋 버튼, 자동 재계산, 추천 근거 상세 UI 추가
+- `src/lib/live-role-trends.ts`
+  - GitHub + npm + PyPI + catalog signal 결합(멀티소스)
+  - 신뢰도 점수/등급, 6개월 시계열 추정치 생성
+- `src/app/trends/[role]/page.tsx`
+  - TOP N 토글, 신뢰도 배지, 소스 정보, 시계열 스파크라인 표시
+- `src/components/watchlist-toggle.tsx`
+  - 관심리스트 추가/해제 버튼 컴포넌트 추가(localStorage)
+- `src/components/watchlist-view.tsx`
+  - 관심리스트 조회/삭제/전체삭제 화면 로직 추가
+- `src/app/watchlist/page.tsx`
+  - 관심리스트 전용 페이지 추가
+- `src/components/nav-links.tsx`, `src/components/mobile-bottom-nav.tsx`, `src/app/layout.tsx`
+  - 관심리스트 내비게이션 경로 추가
+- `src/app/globals.css`
+  - 신뢰도 배지, 시계열 스파크라인, 관심 버튼 스타일 추가

@@ -355,6 +355,12 @@ li {
   gap: 0.45rem;
 }
 
+.topn-switch {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
 .role-pill {
   border: 1px solid var(--line);
   border-radius: 999px;
@@ -427,6 +433,80 @@ li {
   padding: 1rem 0 1.8rem;
 }
 
+.tool-cell {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.watch-toggle {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: #fff;
+  color: #6a5a4d;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.16rem 0.48rem;
+  cursor: pointer;
+}
+
+.watch-toggle.watch-on {
+  color: var(--brand-deep);
+  border-color: #f3a76e;
+  background: #fff3ea;
+}
+
+.trust-badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 760;
+  padding: 0.13rem 0.45rem;
+  border: 1px solid transparent;
+}
+
+.trust-high {
+  color: #166045;
+  background: #e8f9f2;
+  border-color: #9fd9c2;
+}
+
+.trust-medium {
+  color: #7b5a00;
+  background: #fff6dc;
+  border-color: #ecd28b;
+}
+
+.trust-low {
+  color: #8d2f2f;
+  background: #ffefef;
+  border-color: #f2b8b8;
+}
+
+.mini-source {
+  margin-top: 0.2rem;
+  font-size: 0.68rem;
+  color: #7c6b5d;
+}
+
+.sparkline {
+  height: 42px;
+  width: 96px;
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+.sparkline span {
+  display: inline-block;
+  width: 100%;
+  max-width: 14px;
+  border-radius: 6px 6px 2px 2px;
+  background: linear-gradient(180deg, #f8ba88 0%, #e7772c 100%);
+}
+
 .footer-grid {
   display: grid;
   grid-template-columns: 1fr auto;
@@ -488,6 +568,12 @@ li {
 .check-card span {
   font-weight: 700;
   font-size: 0.86rem;
+}
+
+.check-card label {
+  font-weight: 700;
+  font-size: 0.86rem;
+  cursor: pointer;
 }
 
 .check-card small {

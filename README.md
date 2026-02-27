@@ -15,6 +15,7 @@
 - 직무별 트렌드 페이지
 - 상황추천 페이지 (필터 기반 재계산 + 안정형/속도형/확장형)
 - 기술 비교 페이지 (직무 전환 + 다중 선택 비교)
+- 관심리스트 페이지 (로컬 저장 기반)
 - 월간 인사이트 페이지
 
 ## Getting Started
@@ -40,9 +41,9 @@ npm run dev
 - `GET /api/recommendations?role=backend&teamSize=1~3명&timeline=2개월&priority=빠른 출시`
 - 입력 파라미터는 서버에서 검증되며, 기본 rate limit이 적용됩니다.
 - `GET /api/trends/backend`
-  - GitHub 공개 메타데이터(stars) + 최근 30일 커밋 활동 기반으로 직무별 지표를 계산합니다.
-  - 추가 지표: 활동성(activity), 커뮤니티(community), 안정성(stability)
-  - 외부 API 실패 시 샘플 데이터로 fallback 합니다.
+  - GitHub 공개 메타데이터(stars/commits/contributors) + npm/PyPI 보조 신호를 반영해 직무별 지표를 계산합니다.
+  - 추가 지표: 활동성(activity), 커뮤니티(community), 안정성(stability), 신뢰도(confidence)
+  - 일부 소스 실패 시 부분 fallback, 전체 실패 시 샘플 데이터 fallback
 
 ## Main Routes
 
@@ -51,6 +52,7 @@ npm run dev
 - `/trends/[role]` 직무별 트렌드
 - `/scenarios/[role]` 직무별 상황추천
 - `/compare` 기술/도구 비교
+- `/watchlist` 관심리스트
 - `/insights` 월간 인사이트
 
 ## Security

@@ -9,8 +9,25 @@ type ScenarioExplorerProps = {
 
 type ApiResponse = {
   role: RoleKey;
-  recommendations: Recommendation[];
+  recommendations: (Recommendation & { reasons?: string[] })[];
   appliedRules?: string[];
+};
+
+type RecommendationItem = Recommendation & { reasons?: string[] };
+
+const presetByRole: Record<RoleKey, { label: string; teamSize: string; timeline: string; priority: string }[]> = {
+  backend: [
+    { label: "1인 MVP", teamSize: "1~3명", timeline: "2개월", priority: "빠른 출시" },
+    { label: "팀 확장", teamSize: "4~8명", timeline: "6개월+", priority: "확장성" },
+  ],
+  designer: [
+    { label: "브랜드 강화", teamSize: "1~3명", timeline: "3개월", priority: "브랜딩" },
+    { label: "협업 최적화", teamSize: "2~6명", timeline: "지속", priority: "협업 효율" },
+  ],
+  pm: [
+    { label: "실험 모드", teamSize: "3~10명", timeline: "분기", priority: "실험 속도" },
+    { label: "운영 모드", teamSize: "5~15명", timeline: "지속", priority: "리포팅 자동화" },
+  ],
 };
 
 export default function ScenarioExplorer({ role }: ScenarioExplorerProps) {
@@ -35,7 +52,7 @@ export default function ScenarioExplorer({ role }: ScenarioExplorerProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [appliedRules, setAppliedRules] = useState<string[]>([]);
-  const [items, setItems] = useState<Recommendation[]>(fallbackRecommendations[role]);
+  const [items, setItems] = useState<RecommendationItem[]>(fallbackRecommendations[role]);
 
   useEffect(() => {
     setTeamSize(teamOptions[0] ?? "");
@@ -101,6 +118,22 @@ export default function ScenarioExplorer({ role }: ScenarioExplorerProps) {
       <section className="card">
         <h2>조건 기반 추천</h2>
         <p className="muted">팀 규모, 일정, 우선순위를 선택하면 추천안을 다시 계산합니다.</p>
+        <div className="chip-row" style={{ marginTop: "0.6rem" }}>
+          {presetByRole[role].map((preset) => (
+            <button
+              key={preset.label}
+              type="button"
+              className="role-pill"
+              onClick={() => {
+                setTeamSize(preset.teamSize);
+                setTimeline(preset.timeline);
+                setPriority(preset.priority);
+              }}
+            >
+              {preset.label}
+            </button>
+          ))}
+        </div>
         <div className="filter-grid">
           <label className="field">
             <span>팀 규모</span>
@@ -153,6 +186,16 @@ export default function ScenarioExplorer({ role }: ScenarioExplorerProps) {
             <p className="eyebrow">{index + 1}순위 · {pick.label}</p>
             <h2>{pick.stack}</h2>
             <p className="muted">적합도 {pick.fitScore}점</p>
+            {pick.reasons && pick.reasons.length > 0 ? (
+              <>
+                <p className="list-title">추천 근거</p>
+                <ul>
+                  {pick.reasons.map((reason) => (
+                    <li key={reason}>{reason}</li>
+                  ))}
+                </ul>
+              </>
+            ) : null}
             <p className="list-title">장점</p>
             <ul>
               {pick.pros.map((pro) => (

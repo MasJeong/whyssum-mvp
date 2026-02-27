@@ -1,15 +1,18 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import ProgressBar from "@/components/progress-bar";
+import WatchlistToggle from "@/components/watchlist-toggle";
 import { getRoleTrendMetrics } from "@/lib/live-role-trends";
 import { roles, sourceNote, type RoleKey } from "@/lib/mvp-data";
 
 type PageProps = {
   params: Promise<{ role: string }>;
+  searchParams: Promise<{ topN?: string }>;
 };
 
-export default async function TrendByRolePage({ params }: PageProps) {
+export default async function TrendByRolePage({ params, searchParams }: PageProps) {
   const { role } = await params;
+  const query = await searchParams;
   const roleKey = role as RoleKey;
   const roleInfo = roles.find((item) => item.key === roleKey);
 
@@ -18,7 +21,10 @@ export default async function TrendByRolePage({ params }: PageProps) {
   }
 
   const trendResult = await getRoleTrendMetrics(roleKey);
-  const metrics = trendResult.metrics;
+  const sortedMetrics = [...trendResult.metrics].sort((a, b) => b.demandIndex - a.demandIndex);
+  const topNCandidate = Number(query.topN ?? 8);
+  const topN = Number.isFinite(topNCandidate) && topNCandidate > 0 ? topNCandidate : 8;
+  const metrics = sortedMetrics.slice(0, Math.min(topN, sortedMetrics.length));
   const average = {
     adoption: Math.round(metrics.reduce((sum, row) => sum + row.adoptionRate, 0) / metrics.length),
     growth: Math.round(metrics.reduce((sum, row) => sum + row.growthRate, 0) / metrics.length),
@@ -52,6 +58,17 @@ export default async function TrendByRolePage({ params }: PageProps) {
               className={`role-pill ${item.key === roleKey ? "role-pill-active" : ""}`}
             >
               {item.name}
+            </Link>
+          ))}
+        </div>
+        <div className="topn-switch" style={{ marginTop: "0.75rem" }}>
+          {[5, 8, 12].map((size) => (
+            <Link
+              key={size}
+              href={`/trends/${roleKey}?topN=${size}`}
+              className={`role-pill ${topN === size ? "role-pill-active" : ""}`}
+            >
+              TOP {size}
             </Link>
           ))}
         </div>
@@ -103,13 +120,20 @@ export default async function TrendByRolePage({ params }: PageProps) {
                 <th>활동지수</th>
                 <th>커뮤니티</th>
                 <th>안정성</th>
+                <th>신뢰도</th>
+                <th>추세(6개월)</th>
                 <th>난이도</th>
               </tr>
             </thead>
             <tbody>
               {metrics.map((row) => (
                 <tr key={row.tool}>
-                  <td>{row.tool}</td>
+                  <td>
+                    <div className="tool-cell">
+                      <span>{row.tool}</span>
+                      <WatchlistToggle itemKey={`${roleKey}:${row.tool}`} label={row.tool} />
+                    </div>
+                  </td>
                   <td>
                     <div className="meter-cell">
                       <span>{row.adoptionRate}%</span>
@@ -121,6 +145,19 @@ export default async function TrendByRolePage({ params }: PageProps) {
                   <td>{row.activityScore ?? Math.round(row.growthRate * 3)}</td>
                   <td>{row.communityScore ?? row.demandIndex}</td>
                   <td>{row.stabilityScore ?? row.demandIndex}</td>
+                  <td>
+                    <span className={`trust-badge trust-${(row.trustLevel ?? "Medium").toLowerCase()}`}>
+                      {row.trustLevel ?? "Medium"} ({row.confidenceScore ?? 60})
+                    </span>
+                    <div className="mini-source">{(row.sources ?? []).join(", ")}</div>
+                  </td>
+                  <td>
+                    <div className="sparkline" aria-label="6개월 추세">
+                      {(row.trendSeries ?? []).map((point, idx) => (
+                        <span key={`${row.tool}-${idx}`} style={{ height: `${Math.max(12, point)}%` }} />
+                      ))}
+                    </div>
+                  </td>
                   <td>{row.difficulty}</td>
                 </tr>
               ))}

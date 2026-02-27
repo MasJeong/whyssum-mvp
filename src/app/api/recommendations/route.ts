@@ -18,8 +18,12 @@ function clampScore(value: number) {
   return Math.max(0, Math.min(100, Math.round(value)));
 }
 
+type ScoredRecommendation = (typeof recommendations)[RoleKey][number] & {
+  reasons: string[];
+};
+
 function applyConditionScore(role: RoleKey, query: { teamSize?: string | null; timeline?: string | null; priority?: string | null }) {
-  const roleRecommendations = recommendations[role].map((item) => ({ ...item }));
+  const roleRecommendations: ScoredRecommendation[] = recommendations[role].map((item) => ({ ...item, reasons: [] }));
   const adjustments: string[] = [];
 
   const maxTeam = extractMaxTeamSize(query.teamSize);
@@ -30,50 +34,83 @@ function applyConditionScore(role: RoleKey, query: { teamSize?: string | null; t
     let delta = 0;
 
     if (priority.includes("빠른") || priority.includes("실험")) {
-      if (item.label === "속도형") delta += 14;
+      if (item.label === "속도형") {
+        delta += 14;
+        item.reasons.push("빠른 실행/실험 우선 조건에서 속도형 가중치 증가");
+      }
       if (item.label === "안정형") delta -= 3;
       if (item.label === "확장형") delta -= 7;
     }
 
     if (priority.includes("확장")) {
-      if (item.label === "확장형") delta += 15;
+      if (item.label === "확장형") {
+        delta += 15;
+        item.reasons.push("확장성 우선 조건에서 확장형 가중치 증가");
+      }
       if (item.label === "안정형") delta += 2;
       if (item.label === "속도형") delta -= 3;
     }
 
     if (priority.includes("협업") || priority.includes("리포팅")) {
-      if (item.label === "안정형") delta += 10;
+      if (item.label === "안정형") {
+        delta += 10;
+        item.reasons.push("협업/리포팅 중심 조건에서 안정형 선호");
+      }
       if (item.label === "속도형") delta += 4;
     }
 
     if (priority.includes("브랜딩")) {
-      if (role === "designer" && item.label === "확장형") delta += 14;
+      if (role === "designer" && item.label === "확장형") {
+        delta += 14;
+        item.reasons.push("디자인 브랜딩 조건에서 확장형 경험 요소 강화");
+      }
       if (role === "designer" && item.label === "안정형") delta += 4;
     }
 
     if (timeline.includes("2개월") || timeline.includes("3개월") || timeline.includes("분기")) {
-      if (item.label === "속도형") delta += 8;
+      if (item.label === "속도형") {
+        delta += 8;
+        item.reasons.push("단기 일정에서 구현 속도 이점 반영");
+      }
       if (item.label === "확장형") delta -= 3;
     }
 
     if (timeline.includes("6개월") || timeline.includes("지속")) {
-      if (item.label === "안정형") delta += 6;
-      if (item.label === "확장형") delta += 8;
+      if (item.label === "안정형") {
+        delta += 6;
+        item.reasons.push("장기 운영 일정에서 안정형 유지보수 이점 반영");
+      }
+      if (item.label === "확장형") {
+        delta += 8;
+        item.reasons.push("장기 일정에서 확장 아키텍처 투자 여유 반영");
+      }
     }
 
     if (typeof maxTeam === "number") {
       if (maxTeam <= 3) {
-        if (item.label === "속도형") delta += 7;
+        if (item.label === "속도형") {
+          delta += 7;
+          item.reasons.push("소규모 팀에서 낮은 복잡도/빠른 온보딩 이점");
+        }
         if (item.label === "확장형") delta -= 5;
       }
 
       if (maxTeam >= 8) {
-        if (item.label === "확장형") delta += 9;
-        if (item.label === "안정형") delta += 6;
+        if (item.label === "확장형") {
+          delta += 9;
+          item.reasons.push("대규모 팀에서 확장성 중심 설계 선호");
+        }
+        if (item.label === "안정형") {
+          delta += 6;
+          item.reasons.push("대규모 팀 협업에서 안정적 운영 체계 선호");
+        }
       }
     }
 
     item.fitScore = clampScore(item.fitScore + delta);
+    if (item.reasons.length === 0) {
+      item.reasons.push("기본 직무 추천 가중치 기준");
+    }
   }
 
   if (query.teamSize) adjustments.push(`팀 규모: ${query.teamSize}`);

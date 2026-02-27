@@ -4,10 +4,10 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const tabs = [
-  { href: "/", label: "홈" },
   { href: "/roles", label: "직무" },
   { href: "/scenarios/backend", label: "추천" },
   { href: "/compare", label: "비교" },
+  { href: "/watchlist", label: "관심" },
   { href: "/insights", label: "인사이트" },
 ];
 

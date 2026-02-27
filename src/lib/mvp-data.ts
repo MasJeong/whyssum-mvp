@@ -16,6 +16,10 @@ export type TrendMetric = {
   communityScore?: number;
   activityScore?: number;
   stabilityScore?: number;
+  confidenceScore?: number;
+  trustLevel?: "High" | "Medium" | "Low";
+  sources?: string[];
+  trendSeries?: number[];
 };
 
 export type ScenarioInput = {

@@ -38,6 +38,7 @@ export default function RootLayout({
               <Link href="/roles">직무</Link>
               <Link href="/trends/backend">트렌드</Link>
               <Link href="/scenarios/backend">상황추천</Link>
+              <Link href="/watchlist">관심리스트</Link>
               <Link href="/insights">인사이트</Link>
             </div>
           </div>
