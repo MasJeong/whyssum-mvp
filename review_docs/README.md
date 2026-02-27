@@ -7,6 +7,7 @@
 - `changed-files.md`: 수정/추가된 파일과 변경 목적
 - `cautions.md`: 검토 시 확인해야 할 주의사항과 후속 작업
 - `requirements.md`: 웹사이트형 제품 요구사항과 구현 매핑
+- `backend-review-guide.md`: 백엔드 관점에서 전체 구현을 검토하는 가이드
 
 ## 검토 순서 추천
 

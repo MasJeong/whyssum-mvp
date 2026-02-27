@@ -13,6 +13,9 @@ export type TrendMetric = {
   growthRate: number;
   demandIndex: number;
   difficulty: "낮음" | "중간" | "높음";
+  communityScore?: number;
+  activityScore?: number;
+  stabilityScore?: number;
 };
 
 export type ScenarioInput = {
@@ -58,18 +61,30 @@ export const trendData: Record<RoleKey, TrendMetric[]> = {
     { tool: "Spring Boot", adoptionRate: 31, growthRate: 4, demandIndex: 76, difficulty: "중간" },
     { tool: "Go", adoptionRate: 16, growthRate: 9, demandIndex: 68, difficulty: "중간" },
     { tool: "FastAPI", adoptionRate: 9, growthRate: 5, demandIndex: 54, difficulty: "낮음" },
+    { tool: "NestJS", adoptionRate: 21, growthRate: 8, demandIndex: 66, difficulty: "낮음" },
+    { tool: "Django", adoptionRate: 17, growthRate: 3, demandIndex: 59, difficulty: "중간" },
+    { tool: "Rust (Axum)", adoptionRate: 6, growthRate: 10, demandIndex: 47, difficulty: "높음" },
+    { tool: "Kotlin (Ktor)", adoptionRate: 5, growthRate: 6, demandIndex: 43, difficulty: "중간" },
   ],
   designer: [
     { tool: "Figma", adoptionRate: 72, growthRate: 6, demandIndex: 88, difficulty: "낮음" },
     { tool: "Framer", adoptionRate: 22, growthRate: 8, demandIndex: 57, difficulty: "중간" },
     { tool: "Adobe XD", adoptionRate: 12, growthRate: -3, demandIndex: 34, difficulty: "중간" },
     { tool: "Rive", adoptionRate: 8, growthRate: 4, demandIndex: 40, difficulty: "높음" },
+    { tool: "Spline", adoptionRate: 7, growthRate: 7, demandIndex: 46, difficulty: "중간" },
+    { tool: "ProtoPie", adoptionRate: 6, growthRate: 5, demandIndex: 44, difficulty: "중간" },
+    { tool: "Lottie", adoptionRate: 11, growthRate: 3, demandIndex: 49, difficulty: "낮음" },
+    { tool: "Storybook", adoptionRate: 14, growthRate: 6, demandIndex: 53, difficulty: "중간" },
   ],
   pm: [
     { tool: "Notion", adoptionRate: 58, growthRate: 5, demandIndex: 74, difficulty: "낮음" },
     { tool: "Jira", adoptionRate: 42, growthRate: 2, demandIndex: 69, difficulty: "중간" },
     { tool: "Linear", adoptionRate: 23, growthRate: 10, demandIndex: 61, difficulty: "낮음" },
     { tool: "Amplitude", adoptionRate: 11, growthRate: 3, demandIndex: 49, difficulty: "높음" },
+    { tool: "Mixpanel", adoptionRate: 13, growthRate: 4, demandIndex: 52, difficulty: "중간" },
+    { tool: "Asana", adoptionRate: 17, growthRate: 2, demandIndex: 54, difficulty: "낮음" },
+    { tool: "ClickUp", adoptionRate: 9, growthRate: 5, demandIndex: 45, difficulty: "낮음" },
+    { tool: "Miro", adoptionRate: 19, growthRate: 6, demandIndex: 58, difficulty: "낮음" },
   ],
 };
 

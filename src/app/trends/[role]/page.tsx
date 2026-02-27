@@ -19,6 +19,20 @@ export default async function TrendByRolePage({ params }: PageProps) {
 
   const trendResult = await getRoleTrendMetrics(roleKey);
   const metrics = trendResult.metrics;
+  const average = {
+    adoption: Math.round(metrics.reduce((sum, row) => sum + row.adoptionRate, 0) / metrics.length),
+    growth: Math.round(metrics.reduce((sum, row) => sum + row.growthRate, 0) / metrics.length),
+    demand: Math.round(metrics.reduce((sum, row) => sum + row.demandIndex, 0) / metrics.length),
+    activity: Math.round(
+      metrics.reduce((sum, row) => sum + (row.activityScore ?? row.growthRate * 3), 0) / metrics.length,
+    ),
+    community: Math.round(
+      metrics.reduce((sum, row) => sum + (row.communityScore ?? row.demandIndex), 0) / metrics.length,
+    ),
+    stability: Math.round(
+      metrics.reduce((sum, row) => sum + (row.stabilityScore ?? row.demandIndex), 0) / metrics.length,
+    ),
+  };
 
   return (
     <main className="container page">
@@ -43,26 +57,36 @@ export default async function TrendByRolePage({ params }: PageProps) {
         </div>
       </section>
 
-      <section className="grid grid-4">
+      <section className="grid grid-3">
         <article className="card kpi">
           <p>평균 채택률</p>
-          <strong>{Math.round(metrics.reduce((sum, row) => sum + row.adoptionRate, 0) / metrics.length)}%</strong>
+          <strong>{average.adoption}%</strong>
           <small>해당 직무의 기술 사용 비중 평균</small>
         </article>
         <article className="card kpi">
           <p>평균 성장률</p>
-          <strong>{Math.round(metrics.reduce((sum, row) => sum + row.growthRate, 0) / metrics.length)}%</strong>
+          <strong>{average.growth}%</strong>
           <small>전년 대비 상승 속도</small>
         </article>
         <article className="card kpi">
           <p>평균 수요지수</p>
-          <strong>{Math.round(metrics.reduce((sum, row) => sum + row.demandIndex, 0) / metrics.length)}</strong>
+          <strong>{average.demand}</strong>
           <small>채용/실무 요구 통합 지수</small>
         </article>
         <article className="card kpi">
-          <p>데이터 시점</p>
-          <strong>2026.02</strong>
-          <small>월간 샘플 업데이트 기준</small>
+          <p>활동 지수</p>
+          <strong>{average.activity}</strong>
+          <small>최근 30일 커밋/기여자 반영</small>
+        </article>
+        <article className="card kpi">
+          <p>커뮤니티 지수</p>
+          <strong>{average.community}</strong>
+          <small>리포지토리 규모 기반</small>
+        </article>
+        <article className="card kpi">
+          <p>안정성 지수</p>
+          <strong>{average.stability}</strong>
+          <small>커뮤니티 + 활동 결합</small>
         </article>
       </section>
 
@@ -76,6 +100,9 @@ export default async function TrendByRolePage({ params }: PageProps) {
                 <th>채택률</th>
                 <th>성장률</th>
                 <th>수요지수</th>
+                <th>활동지수</th>
+                <th>커뮤니티</th>
+                <th>안정성</th>
                 <th>난이도</th>
               </tr>
             </thead>
@@ -91,6 +118,9 @@ export default async function TrendByRolePage({ params }: PageProps) {
                   </td>
                   <td>{row.growthRate > 0 ? `+${row.growthRate}%` : `${row.growthRate}%`}</td>
                   <td>{row.demandIndex}</td>
+                  <td>{row.activityScore ?? Math.round(row.growthRate * 3)}</td>
+                  <td>{row.communityScore ?? row.demandIndex}</td>
+                  <td>{row.stabilityScore ?? row.demandIndex}</td>
                   <td>{row.difficulty}</td>
                 </tr>
               ))}

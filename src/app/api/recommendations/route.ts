@@ -7,6 +7,83 @@ import { parseRecommendationQuery } from "@/lib/security/validation";
 const RATE_LIMIT_WINDOW_MS = 60_000;
 const RATE_LIMIT_PER_WINDOW = 30;
 
+function extractMaxTeamSize(value?: string | null): number | null {
+  if (!value) return null;
+  const numbers = value.match(/\d+/g);
+  if (!numbers || numbers.length === 0) return null;
+  return Number(numbers[numbers.length - 1]);
+}
+
+function clampScore(value: number) {
+  return Math.max(0, Math.min(100, Math.round(value)));
+}
+
+function applyConditionScore(role: RoleKey, query: { teamSize?: string | null; timeline?: string | null; priority?: string | null }) {
+  const roleRecommendations = recommendations[role].map((item) => ({ ...item }));
+  const adjustments: string[] = [];
+
+  const maxTeam = extractMaxTeamSize(query.teamSize);
+  const timeline = query.timeline ?? "";
+  const priority = query.priority ?? "";
+
+  for (const item of roleRecommendations) {
+    let delta = 0;
+
+    if (priority.includes("빠른") || priority.includes("실험")) {
+      if (item.label === "속도형") delta += 14;
+      if (item.label === "안정형") delta -= 3;
+      if (item.label === "확장형") delta -= 7;
+    }
+
+    if (priority.includes("확장")) {
+      if (item.label === "확장형") delta += 15;
+      if (item.label === "안정형") delta += 2;
+      if (item.label === "속도형") delta -= 3;
+    }
+
+    if (priority.includes("협업") || priority.includes("리포팅")) {
+      if (item.label === "안정형") delta += 10;
+      if (item.label === "속도형") delta += 4;
+    }
+
+    if (priority.includes("브랜딩")) {
+      if (role === "designer" && item.label === "확장형") delta += 14;
+      if (role === "designer" && item.label === "안정형") delta += 4;
+    }
+
+    if (timeline.includes("2개월") || timeline.includes("3개월") || timeline.includes("분기")) {
+      if (item.label === "속도형") delta += 8;
+      if (item.label === "확장형") delta -= 3;
+    }
+
+    if (timeline.includes("6개월") || timeline.includes("지속")) {
+      if (item.label === "안정형") delta += 6;
+      if (item.label === "확장형") delta += 8;
+    }
+
+    if (typeof maxTeam === "number") {
+      if (maxTeam <= 3) {
+        if (item.label === "속도형") delta += 7;
+        if (item.label === "확장형") delta -= 5;
+      }
+
+      if (maxTeam >= 8) {
+        if (item.label === "확장형") delta += 9;
+        if (item.label === "안정형") delta += 6;
+      }
+    }
+
+    item.fitScore = clampScore(item.fitScore + delta);
+  }
+
+  if (query.teamSize) adjustments.push(`팀 규모: ${query.teamSize}`);
+  if (query.timeline) adjustments.push(`일정: ${query.timeline}`);
+  if (query.priority) adjustments.push(`우선순위: ${query.priority}`);
+
+  roleRecommendations.sort((a, b) => b.fitScore - a.fitScore);
+  return { roleRecommendations, adjustments };
+}
+
 function setRateLimitHeaders(response: NextResponse, remaining: number, resetAt: number) {
   response.headers.set("X-RateLimit-Limit", String(RATE_LIMIT_PER_WINDOW));
   response.headers.set("X-RateLimit-Remaining", String(Math.max(0, remaining)));
@@ -34,7 +111,11 @@ export async function GET(request: Request) {
     const query = parseRecommendationQuery(url.searchParams);
 
     const role = query.role as RoleKey;
-    const roleRecommendations = recommendations[role];
+    const { roleRecommendations, adjustments } = applyConditionScore(role, {
+      teamSize: query.teamSize,
+      timeline: query.timeline,
+      priority: query.priority,
+    });
     const matchedScenarios = scenarios.filter((item) => item.role === role);
 
     const response = NextResponse.json({
@@ -46,6 +127,7 @@ export async function GET(request: Request) {
       },
       recommendations: roleRecommendations,
       scenarios: matchedScenarios,
+      appliedRules: adjustments,
       sourceNote,
     });
 

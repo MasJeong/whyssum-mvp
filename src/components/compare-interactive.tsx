@@ -12,6 +12,9 @@ type CompareItem = {
   difficulty: number;
   complexity: number;
   cost: number;
+  activity: number;
+  community: number;
+  stability: number;
 };
 
 const difficultyMap: Record<"낮음" | "중간" | "높음", number> = {
@@ -85,6 +88,9 @@ export default function CompareInteractive() {
         difficulty,
         complexity,
         cost,
+        activity: item.activityScore ?? Math.round(item.growthRate * 3),
+        community: item.communityScore ?? item.demandIndex,
+        stability: item.stabilityScore ?? item.demandIndex,
       };
     });
   }, [liveMetrics, role]);
@@ -170,6 +176,9 @@ export default function CompareInteractive() {
                 <th>러닝커브</th>
                 <th>운영복잡도</th>
                 <th>비용부담</th>
+                <th>활동성</th>
+                <th>커뮤니티</th>
+                <th>안정성</th>
               </tr>
             </thead>
             <tbody>
@@ -187,6 +196,9 @@ export default function CompareInteractive() {
                   <td>
                     <ProgressBar value={item.cost} />
                   </td>
+                  <td>{item.activity}</td>
+                  <td>{item.community}</td>
+                  <td>{item.stability}</td>
                 </tr>
               ))}
             </tbody>

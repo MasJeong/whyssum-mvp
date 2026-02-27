@@ -10,6 +10,7 @@ type ScenarioExplorerProps = {
 type ApiResponse = {
   role: RoleKey;
   recommendations: Recommendation[];
+  appliedRules?: string[];
 };
 
 export default function ScenarioExplorer({ role }: ScenarioExplorerProps) {
@@ -33,6 +34,7 @@ export default function ScenarioExplorer({ role }: ScenarioExplorerProps) {
   const [priority, setPriority] = useState<string>(priorityOptions[0] ?? "");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [appliedRules, setAppliedRules] = useState<string[]>([]);
   const [items, setItems] = useState<Recommendation[]>(fallbackRecommendations[role]);
 
   useEffect(() => {
@@ -40,6 +42,7 @@ export default function ScenarioExplorer({ role }: ScenarioExplorerProps) {
     setTimeline(timelineOptions[0] ?? "");
     setPriority(priorityOptions[0] ?? "");
     setItems(fallbackRecommendations[role]);
+    setAppliedRules([]);
     setError(null);
   }, [priorityOptions, role, teamOptions, timelineOptions]);
 
@@ -70,13 +73,28 @@ export default function ScenarioExplorer({ role }: ScenarioExplorerProps) {
       }
 
       setItems(payload.recommendations);
+      setAppliedRules(payload.appliedRules ?? []);
     } catch (fetchError) {
       setItems(fallbackRecommendations[role]);
+      setAppliedRules([]);
       setError(fetchError instanceof Error ? fetchError.message : "알 수 없는 오류가 발생했습니다.");
     } finally {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (!teamSize || !timeline || !priority) {
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      void searchRecommendations();
+    }, 200);
+
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [teamSize, timeline, priority, role]);
 
   return (
     <>
@@ -122,12 +140,17 @@ export default function ScenarioExplorer({ role }: ScenarioExplorerProps) {
           <span className="inline-note">API rate limit: 분당 30회</span>
         </div>
         {error ? <p className="error-text">{error} (기본 추천안으로 표시 중)</p> : null}
+        {appliedRules.length > 0 ? (
+          <p className="inline-note" style={{ marginTop: "0.4rem" }}>
+            적용 조건: {appliedRules.join(" / ")}
+          </p>
+        ) : null}
       </section>
 
       <section className="grid grid-3">
-        {items.map((pick) => (
+        {items.map((pick, index) => (
           <article className="card" key={pick.label}>
-            <p className="eyebrow">{pick.label}</p>
+            <p className="eyebrow">{index + 1}순위 · {pick.label}</p>
             <h2>{pick.stack}</h2>
             <p className="muted">적합도 {pick.fitScore}점</p>
             <p className="list-title">장점</p>

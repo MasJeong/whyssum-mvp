@@ -59,3 +59,20 @@
   - 트렌드 페이지를 live/fallback 데이터 모드와 갱신 시점 표시로 확장
 - `src/components/compare-interactive.tsx`
   - 비교 화면도 `/api/trends/[role]` 연동 데이터 사용으로 업그레이드
+
+## 추가 반영 (고도화 2차)
+
+- `src/lib/mvp-data.ts`
+  - role별 트렌드 후보를 4개 -> 8개로 확장
+  - 비교/트렌드 활용을 위한 확장 지표 필드 타입 추가
+- `src/app/api/recommendations/route.ts`
+  - 조건별 점수 가중치를 강화해 필터 변경 효과가 명확히 반영되도록 개선
+- `src/components/scenario-explorer.tsx`
+  - 조건 변경 시 자동 재계산 및 순위 표시 추가
+- `src/lib/live-role-trends.ts`
+  - stars/commits 외 contributors 지표까지 반영
+  - 개별 repo 실패 시 부분 fallback으로 내결함성 강화
+- `src/app/trends/[role]/page.tsx`
+  - 활동/커뮤니티/안정성 KPI 및 컬럼 추가
+- `src/components/compare-interactive.tsx`
+  - 비교표에 활동성/커뮤니티/안정성 컬럼 추가
