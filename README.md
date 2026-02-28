@@ -41,6 +41,7 @@ npm run dev
 
 - `GET /api/recommendations?role=backend&teamSize=1~3명&timeline=2개월&priority=빠른 출시`
 - 입력 파라미터는 서버에서 검증되며, 기본 rate limit이 적용됩니다.
+- 응답에는 추천안별 `reasons`(근거), `confidenceScore`/`trustLevel`(신뢰도), `whyNow`(지금 추천 이유), `tradeoff`(속도/안정성/확장성 점수)가 포함됩니다.
 - `GET /api/trends/backend`
   - GitHub 공개 메타데이터(stars/commits/contributors) + npm/PyPI 보조 신호를 반영해 직무별 지표를 계산합니다.
   - 추가 지표: 활동성(activity), 커뮤니티(community), 안정성(stability), 신뢰도(confidence)

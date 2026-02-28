@@ -115,3 +115,17 @@
   - 브리핑 전용 페이지 추가
 - `src/components/nav-links.tsx`, `src/components/mobile-bottom-nav.tsx`, `src/app/layout.tsx`
   - 상단/하단/푸터 네비게이션에 브리핑 메뉴 추가
+
+## 추가 반영 (상황추천 explainability 고도화)
+
+- `src/app/api/recommendations/route.ts`
+  - 추천안별 신뢰도 점수/등급(`confidenceScore`, `trustLevel`) 계산 추가
+  - 역할별 트렌드 신호를 반영한 `whyNow` 문장 생성 추가
+  - 속도/안정성/확장성 트레이드오프 축(`tradeoff`) 계산 추가
+- `src/components/scenario-explorer.tsx`
+  - 카드에 신뢰도 배지, Why now 문장, 트레이드오프 프로그레스바 UI 추가
+  - API 필드 누락 시 fallback 신뢰도/트레이드오프 표시 로직 추가
+- `README.md`
+  - 추천 API 응답 필드(근거/신뢰도/Why now/트레이드오프) 설명 추가
+- `review_docs/requirements.md`, `review_docs/cautions.md`, `review_docs/backend-review-guide.md`
+  - 상황추천 explainability 확장 사항 및 검토 포인트 반영

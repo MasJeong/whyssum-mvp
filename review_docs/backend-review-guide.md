@@ -45,6 +45,9 @@
 - 응답:
   - 추천안 목록(안정형/속도형/확장형)
   - 추천안별 상세 근거(`reasons`)
+  - 추천안별 신뢰도(`confidenceScore`, `trustLevel`)
+  - 추천안별 Why now 설명(`whyNow`)
+  - 추천안별 의사결정 축(`tradeoff.speed/stability/scalability`)
   - 필터 정보 echo
   - 관련 시나리오 목록
   - source note

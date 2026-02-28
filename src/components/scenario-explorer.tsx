@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import ProgressBar from "@/components/progress-bar";
 import { recommendations as fallbackRecommendations, scenarios, type Recommendation, type RoleKey } from "@/lib/mvp-data";
 
 type ScenarioExplorerProps = {
@@ -9,11 +10,24 @@ type ScenarioExplorerProps = {
 
 type ApiResponse = {
   role: RoleKey;
-  recommendations: (Recommendation & { reasons?: string[] })[];
+  recommendations: (Recommendation & RecommendationInsight & { reasons?: string[] })[];
   appliedRules?: string[];
 };
 
-type RecommendationItem = Recommendation & { reasons?: string[] };
+type RecommendationTrustLevel = "High" | "Medium" | "Low";
+
+type RecommendationInsight = {
+  confidenceScore?: number;
+  trustLevel?: RecommendationTrustLevel;
+  whyNow?: string;
+  tradeoff?: {
+    speed: number;
+    stability: number;
+    scalability: number;
+  };
+};
+
+type RecommendationItem = Recommendation & RecommendationInsight & { reasons?: string[] };
 
 const presetByRole: Record<RoleKey, { label: string; teamSize: string; timeline: string; priority: string }[]> = {
   backend: [
@@ -113,6 +127,26 @@ export default function ScenarioExplorer({ role }: ScenarioExplorerProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [teamSize, timeline, priority, role]);
 
+  const getFallbackConfidence = (item: RecommendationItem) => Math.max(45, Math.min(95, Math.round(item.fitScore * 0.82)));
+
+  const getFallbackTrustLevel = (confidenceScore: number): RecommendationTrustLevel => {
+    if (confidenceScore >= 80) return "High";
+    if (confidenceScore >= 60) return "Medium";
+    return "Low";
+  };
+
+  const getFallbackTradeoff = (label: Recommendation["label"]) => {
+    if (label === "안정형") return { speed: 58, stability: 90, scalability: 72 };
+    if (label === "속도형") return { speed: 90, stability: 60, scalability: 63 };
+    return { speed: 62, stability: 68, scalability: 93 };
+  };
+
+  const getFallbackWhyNow = (label: Recommendation["label"]) => {
+    if (label === "안정형") return "운영 안정성과 협업 일관성을 우선할 때 리스크가 가장 낮은 선택입니다.";
+    if (label === "속도형") return "최근 빠른 실험-배포 루프가 중요해져 초기 검증 속도에 유리합니다.";
+    return "성장 구간에서 구조적 확장 여유를 선반영해야 할 때 효과적입니다.";
+  };
+
   return (
     <>
       <section className="card">
@@ -185,7 +219,47 @@ export default function ScenarioExplorer({ role }: ScenarioExplorerProps) {
           <article className="card" key={pick.label}>
             <p className="eyebrow">{index + 1}순위 · {pick.label}</p>
             <h2>{pick.stack}</h2>
-            <p className="muted">적합도 {pick.fitScore}점</p>
+            {(() => {
+              const confidenceScore = pick.confidenceScore ?? getFallbackConfidence(pick);
+              const trustLevel = pick.trustLevel ?? getFallbackTrustLevel(confidenceScore);
+              const tradeoff = pick.tradeoff ?? getFallbackTradeoff(pick.label);
+              const whyNow = pick.whyNow ?? getFallbackWhyNow(pick.label);
+
+              return (
+                <>
+                  <div className="chip-row" style={{ marginTop: "0.2rem" }}>
+                    <span className="chip">적합도 {pick.fitScore}점</span>
+                    <span className={`trust-badge trust-${trustLevel.toLowerCase()}`}>
+                      신뢰도 {trustLevel} ({confidenceScore})
+                    </span>
+                  </div>
+                  <p className="inline-note" style={{ marginTop: "0.45rem" }}>
+                    Why now: {whyNow}
+                  </p>
+                  <p className="list-title">의사결정 트레이드오프</p>
+                  <div style={{ display: "grid", gap: "0.45rem" }}>
+                    <div>
+                      <div className="meter-cell">
+                        <span>속도 {tradeoff.speed}</span>
+                      </div>
+                      <ProgressBar value={tradeoff.speed} />
+                    </div>
+                    <div>
+                      <div className="meter-cell">
+                        <span>안정성 {tradeoff.stability}</span>
+                      </div>
+                      <ProgressBar value={tradeoff.stability} />
+                    </div>
+                    <div>
+                      <div className="meter-cell">
+                        <span>확장성 {tradeoff.scalability}</span>
+                      </div>
+                      <ProgressBar value={tradeoff.scalability} />
+                    </div>
+                  </div>
+                </>
+              );
+            })()}
             {pick.reasons && pick.reasons.length > 0 ? (
               <>
                 <p className="list-title">추천 근거</p>
