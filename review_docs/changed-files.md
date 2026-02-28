@@ -166,3 +166,16 @@
   - `/api/*`, `/watchlist`에 대한 검색엔진 인덱싱 제어(`robots`, `X-Robots-Tag`) 추가
 - `AGENTS.md`, `src/app/api/recommendations/route.ts`, `src/components/scenario-explorer.tsx`
   - 복잡 로직(스코어링/fallback/디바운스/저장 상한)에 대한 유지보수 주석 기준 반영 및 핵심 주석 추가
+
+## 추가 반영 (UI/UX 현대화 1차)
+
+- `src/app/globals.css`
+  - 의미 기반 텍스트 토큰/타이포 스케일 조정
+  - 전역 포커스 가시성, 버튼/필 탭 터치 타깃, 표 가독성(sticky 첫 열/hover) 강화
+  - 공통 유틸 클래스(`readable`, `mt-*`, `stack-*`, `sr-only`) 추가
+- `src/app/page.tsx`, `src/app/roles/page.tsx`, `src/app/compare/page.tsx`, `src/app/scenarios/[role]/page.tsx`, `src/app/trends/[role]/page.tsx`
+  - 본문 가독성(`readable`) 및 인라인 마진 스타일 일부 공통 클래스 치환
+- `src/components/scenario-explorer.tsx`, `src/components/compare-interactive.tsx`
+  - 상세/저장 UI 간격 체계 정리 및 비교표 접근성 캡션 추가
+- `README.md`, `review_docs/requirements.md`, `review_docs/cautions.md`
+  - UI/UX 현대화 1차 반영 내용 및 QA 체크포인트 동기화
