@@ -120,6 +120,28 @@ npm run build
 - For formulas, add a short preface block that explains composition in plain language before the expression.
 - For API route logic, document data source assumptions, fallback behavior, and error policy when non-obvious.
 - Comment levels: inline (local intent), block/JSDoc (function contract), file header (module responsibility), ADR/docs (architecture decisions).
+- Language for source comments:
+  - Inline comments may be Korean when domain context is Korean-first.
+  - JSDoc for exported/public complex functions should be English-friendly for tooling consistency.
+- JSDoc trigger rules (required):
+  - Scoring/calculation functions with weights, heuristics, caps, or thresholds
+  - API handlers with fallback chains, error policy, or security-sensitive behavior
+  - Shared utility functions where misuse causes correctness/security issues
+- Inline comment trigger rules (required):
+  - Why a fallback branch exists
+  - Why debounce/cache TTL/rate-limit boundaries were chosen
+  - Why a specific guard exists (e.g., hydration/stability constraints)
+- Anti-patterns (forbidden):
+  - Restating code (`// increment i` before `i++`)
+  - Stale comments that no longer match behavior
+  - Vague TODO/FIXME without scope; if unavoidable, include owner/context and planned follow-up
+- Preferred formula comment style:
+  - One short summary block above the expression (component parts + rationale)
+  - Explicitly label tunable knobs (for A/B or product calibration)
+- API documentation minimum for non-trivial routes:
+  - Data source assumptions
+  - Fallback/degradation policy
+  - Error response policy (what is intentionally hidden)
 
 ### React / Next.js conventions
 - Default to Server Components in `src/app/`.
