@@ -5,6 +5,8 @@ import { useMemo, useSyncExternalStore } from "react";
 
 const STORAGE_KEY = "whyssum:watchlist";
 const WATCHLIST_CHANGED_EVENT = "whyssum:watchlist-changed";
+let cachedWatchlistRaw: string | null = null;
+let cachedWatchlist: string[] = [];
 
 function readWatchlist(): string[] {
   if (typeof window === "undefined") return [];
@@ -39,7 +41,16 @@ function subscribeWatchlist(onStoreChange: () => void) {
 }
 
 function getWatchlistSnapshot() {
-  return readWatchlist();
+  if (typeof window === "undefined") return [];
+
+  const raw = window.localStorage.getItem(STORAGE_KEY);
+  if (raw === cachedWatchlistRaw) {
+    return cachedWatchlist;
+  }
+
+  cachedWatchlistRaw = raw;
+  cachedWatchlist = readWatchlist();
+  return cachedWatchlist;
 }
 
 function getWatchlistServerSnapshot() {
