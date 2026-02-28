@@ -16,6 +16,10 @@ type RateLimitResult = {
 
 const buckets = new Map<string, Bucket>();
 
+/**
+ * 만료된 키를 정리하는 함수
+ * @param now 현재 시간
+ */
 function cleanupExpired(now: number) {
   for (const [key, bucket] of buckets.entries()) {
     if (bucket.resetAt <= now) {

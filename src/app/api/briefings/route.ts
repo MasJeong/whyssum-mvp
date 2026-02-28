@@ -5,6 +5,10 @@ import { checkRateLimit, getClientIp } from "@/lib/security/rate-limit";
 const RATE_LIMIT_WINDOW_MS = 60_000;
 const RATE_LIMIT_PER_WINDOW = 40;
 
+/**
+ * Briefing API 응답에 rate-limit 헤더를 통일해서 내려준다.
+ * 프론트에서 재시도/쿨다운 UX를 만들 수 있도록 reset 시각을 함께 포함한다.
+ */
 function setRateLimitHeaders(response: NextResponse, remaining: number, resetAt: number) {
   response.headers.set("X-RateLimit-Limit", String(RATE_LIMIT_PER_WINDOW));
   response.headers.set("X-RateLimit-Remaining", String(Math.max(0, remaining)));
@@ -31,6 +35,7 @@ export async function GET(request: Request) {
   const role = url.searchParams.get("role");
   const impact = url.searchParams.get("impact");
   const periodRaw = Number(url.searchParams.get("periodDays") ?? "30");
+  // periodDays는 과도한 조회/비정상 값을 막기 위해 1~180일로 제한한다.
   const periodDays = Number.isFinite(periodRaw) ? Math.max(1, Math.min(180, periodRaw)) : 30;
 
   const items = filterBriefings({ role, impact, periodDays });

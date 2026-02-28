@@ -54,6 +54,10 @@ function computeRoleTrendSignals(role: RoleKey): RoleTrendSignals {
   const mediumOrHighRatio = metrics.filter((row) => row.difficulty !== "낮음").length / metrics.length;
   const topGrowthTool = [...metrics].sort((a, b) => b.growthRate - a.growthRate)[0]?.tool ?? "핵심 도구";
 
+  // axis composition summary:
+  // - speed: growth + low-difficulty leverage
+  // - stability: demand + low-difficulty maintainability
+  // - scalability: demand + complexity tolerance + growth
   return {
     speed: clampScore(20 + avgGrowth * 6 + lowDifficultyRatio * 35),
     stability: clampScore(avgDemand * 0.8 + lowDifficultyRatio * 15),
@@ -119,6 +123,7 @@ function applyTradeoffAdjustments(
     adjusted.speed -= 3;
   }
 
+  // Clamping keeps tradeoff meters stable for UI and avoids negative/overflow edge cases.
   return {
     speed: clampScore(adjusted.speed),
     stability: clampScore(adjusted.stability),
@@ -129,6 +134,11 @@ function applyTradeoffAdjustments(
 /**
  * confidenceScore는 "현재 적합도" + "역할 트렌드 신호" + "조건 매칭 근거 개수"를 합성한 지표다.
  * 사용자가 결과 신뢰도를 빠르게 판단하도록 단일 점수로 정규화한다.
+ *
+ * @param fitScore 추천안의 조건 반영 적합도 (0~100)
+ * @param reasonCount 추천 근거 개수 (rule match explainability)
+ * @param trendSignal 역할별 트렌드 축 신호값 (0~100)
+ * @returns 최종 신뢰도 점수 (0~100)
  */
 function computeConfidenceScore(fitScore: number, reasonCount: number, trendSignal: number): number {
   const ruleBonus = Math.min(reasonCount, 5) * 2;
@@ -295,6 +305,7 @@ function applyConditionScore(role: RoleKey, query: { teamSize?: string | null; t
   if (query.timeline) adjustments.push(`일정: ${query.timeline}`);
   if (query.priority) adjustments.push(`우선순위: ${query.priority}`);
 
+  // 최종 출력은 사용자가 바로 비교할 수 있게 fitScore 내림차순으로 정렬한다.
   roleRecommendations.sort((a, b) => b.fitScore - a.fitScore);
   return { roleRecommendations, adjustments };
 }
