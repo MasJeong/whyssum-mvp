@@ -129,3 +129,12 @@
   - 추천 API 응답 필드(근거/신뢰도/Why now/트레이드오프) 설명 추가
 - `review_docs/requirements.md`, `review_docs/cautions.md`, `review_docs/backend-review-guide.md`
   - 상황추천 explainability 확장 사항 및 검토 포인트 반영
+
+## 추가 반영 (상황추천 재방문 루프)
+
+- `src/components/scenario-explorer.tsx`
+  - 조건 스냅샷 저장/불러오기/삭제/전체삭제 UI 추가
+  - 직무별 마지막 선택(teamSize/timeline/priority) 자동 복원 추가
+  - 로컬 저장소 기반 스냅샷 최대 8개 제한 및 중복 저장 갱신 로직 추가
+- `README.md`, `review_docs/requirements.md`, `review_docs/cautions.md`
+  - 재방문 가치(저장/복원)와 QA 확인 포인트 문서 동기화

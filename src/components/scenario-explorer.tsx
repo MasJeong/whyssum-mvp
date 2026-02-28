@@ -29,6 +29,97 @@ type RecommendationInsight = {
 
 type RecommendationItem = Recommendation & RecommendationInsight & { reasons?: string[] };
 
+type ScenarioSnapshot = {
+  id: string;
+  role: RoleKey;
+  teamSize: string;
+  timeline: string;
+  priority: string;
+  updatedAt: number;
+};
+
+type LastScenarioSelection = {
+  teamSize: string;
+  timeline: string;
+  priority: string;
+};
+
+const SNAPSHOT_STORAGE_KEY = "whyssum:scenario-snapshots";
+const LAST_SELECTION_STORAGE_KEY = "whyssum:last-scenario-selection";
+const MAX_SNAPSHOTS_PER_ROLE = 8;
+
+function readAllScenarioSnapshots(): ScenarioSnapshot[] {
+  if (typeof window === "undefined") return [];
+
+  try {
+    const raw = window.localStorage.getItem(SNAPSHOT_STORAGE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+
+    return parsed.filter((item): item is ScenarioSnapshot => {
+      if (!item || typeof item !== "object") return false;
+      if (typeof item.id !== "string") return false;
+      if (item.role !== "backend" && item.role !== "designer" && item.role !== "pm") return false;
+      if (typeof item.teamSize !== "string") return false;
+      if (typeof item.timeline !== "string") return false;
+      if (typeof item.priority !== "string") return false;
+      if (typeof item.updatedAt !== "number") return false;
+      return true;
+    });
+  } catch {
+    return [];
+  }
+}
+
+function writeAllScenarioSnapshots(items: ScenarioSnapshot[]) {
+  if (typeof window === "undefined") return;
+  window.localStorage.setItem(SNAPSHOT_STORAGE_KEY, JSON.stringify(items));
+}
+
+function readSnapshotsByRole(role: RoleKey): ScenarioSnapshot[] {
+  return readAllScenarioSnapshots()
+    .filter((item) => item.role === role)
+    .sort((a, b) => b.updatedAt - a.updatedAt)
+    .slice(0, MAX_SNAPSHOTS_PER_ROLE);
+}
+
+function saveLastScenarioSelection(role: RoleKey, selection: LastScenarioSelection) {
+  if (typeof window === "undefined") return;
+
+  try {
+    const raw = window.localStorage.getItem(LAST_SELECTION_STORAGE_KEY);
+    const base: Partial<Record<RoleKey, LastScenarioSelection>> = raw ? (JSON.parse(raw) as Partial<Record<RoleKey, LastScenarioSelection>>) : {};
+    base[role] = selection;
+    window.localStorage.setItem(LAST_SELECTION_STORAGE_KEY, JSON.stringify(base));
+  } catch {
+    return;
+  }
+}
+
+function readLastScenarioSelection(role: RoleKey): LastScenarioSelection | null {
+  if (typeof window === "undefined") return null;
+
+  try {
+    const raw = window.localStorage.getItem(LAST_SELECTION_STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as Partial<Record<RoleKey, LastScenarioSelection>>;
+    const hit = parsed[role];
+    if (!hit) return null;
+    if (typeof hit.teamSize !== "string" || typeof hit.timeline !== "string" || typeof hit.priority !== "string") {
+      return null;
+    }
+
+    return hit;
+  } catch {
+    return null;
+  }
+}
+
+function createSnapshotId() {
+  return `snapshot-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
 const presetByRole: Record<RoleKey, { label: string; teamSize: string; timeline: string; priority: string }[]> = {
   backend: [
     { label: "1인 MVP", teamSize: "1~3명", timeline: "2개월", priority: "빠른 출시" },
@@ -65,17 +156,38 @@ export default function ScenarioExplorer({ role }: ScenarioExplorerProps) {
   const [priority, setPriority] = useState<string>(priorityOptions[0] ?? "");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [saveMessage, setSaveMessage] = useState<string | null>(null);
   const [appliedRules, setAppliedRules] = useState<string[]>([]);
+  const [savedSnapshots, setSavedSnapshots] = useState<ScenarioSnapshot[]>([]);
   const [items, setItems] = useState<RecommendationItem[]>(fallbackRecommendations[role]);
 
   useEffect(() => {
-    setTeamSize(teamOptions[0] ?? "");
-    setTimeline(timelineOptions[0] ?? "");
-    setPriority(priorityOptions[0] ?? "");
+    const lastSelection = readLastScenarioSelection(role);
+
+    const nextTeam =
+      lastSelection && teamOptions.includes(lastSelection.teamSize) ? lastSelection.teamSize : (teamOptions[0] ?? "");
+    const nextTimeline =
+      lastSelection && timelineOptions.includes(lastSelection.timeline) ? lastSelection.timeline : (timelineOptions[0] ?? "");
+    const nextPriority =
+      lastSelection && priorityOptions.includes(lastSelection.priority) ? lastSelection.priority : (priorityOptions[0] ?? "");
+
+    setTeamSize(nextTeam);
+    setTimeline(nextTimeline);
+    setPriority(nextPriority);
     setItems(fallbackRecommendations[role]);
     setAppliedRules([]);
     setError(null);
+    setSaveMessage(null);
+    setSavedSnapshots(readSnapshotsByRole(role));
   }, [priorityOptions, role, teamOptions, timelineOptions]);
+
+  useEffect(() => {
+    if (!teamSize || !timeline || !priority) {
+      return;
+    }
+
+    saveLastScenarioSelection(role, { teamSize, timeline, priority });
+  }, [priority, role, teamSize, timeline]);
 
   const searchRecommendations = async () => {
     setLoading(true);
@@ -147,6 +259,74 @@ export default function ScenarioExplorer({ role }: ScenarioExplorerProps) {
     return "성장 구간에서 구조적 확장 여유를 선반영해야 할 때 효과적입니다.";
   };
 
+  const saveCurrentSnapshot = () => {
+    if (!teamSize || !timeline || !priority) return;
+
+    const allSnapshots = readAllScenarioSnapshots();
+    const now = Date.now();
+    const duplicated = allSnapshots.find(
+      (item) =>
+        item.role === role && item.teamSize === teamSize && item.timeline === timeline && item.priority === priority,
+    );
+
+    let nextAll: ScenarioSnapshot[];
+    if (duplicated) {
+      nextAll = allSnapshots.map((item) =>
+        item.id === duplicated.id
+          ? {
+              ...item,
+              updatedAt: now,
+            }
+          : item,
+      );
+      setSaveMessage("기존 저장 조건의 갱신 시각을 업데이트했습니다.");
+    } else {
+      nextAll = [
+        ...allSnapshots,
+        {
+          id: createSnapshotId(),
+          role,
+          teamSize,
+          timeline,
+          priority,
+          updatedAt: now,
+        },
+      ];
+      setSaveMessage("현재 조건을 저장했습니다. 다음 방문에서 바로 불러올 수 있습니다.");
+    }
+
+    const roleItems = nextAll
+      .filter((item) => item.role === role)
+      .sort((a, b) => b.updatedAt - a.updatedAt);
+    const roleKeepIds = new Set(roleItems.slice(0, MAX_SNAPSHOTS_PER_ROLE).map((item) => item.id));
+
+    nextAll = nextAll.filter((item) => item.role !== role || roleKeepIds.has(item.id));
+
+    writeAllScenarioSnapshots(nextAll);
+    setSavedSnapshots(readSnapshotsByRole(role));
+  };
+
+  const applySnapshot = (snapshot: ScenarioSnapshot) => {
+    setTeamSize(snapshot.teamSize);
+    setTimeline(snapshot.timeline);
+    setPriority(snapshot.priority);
+    setSaveMessage("저장된 조건을 불러왔습니다.");
+  };
+
+  const removeSnapshot = (id: string) => {
+    const nextAll = readAllScenarioSnapshots().filter((item) => item.id !== id);
+    writeAllScenarioSnapshots(nextAll);
+    setSavedSnapshots(readSnapshotsByRole(role));
+    setSaveMessage("저장 조건을 삭제했습니다.");
+  };
+
+  const clearRoleSnapshots = () => {
+    const nextAll = readAllScenarioSnapshots().filter((item) => item.role !== role);
+    writeAllScenarioSnapshots(nextAll);
+    setSavedSnapshots([]);
+    setSaveMessage("이 직무의 저장 조건을 모두 삭제했습니다.");
+  };
+
   return (
     <>
       <section className="card">
@@ -204,13 +384,57 @@ export default function ScenarioExplorer({ role }: ScenarioExplorerProps) {
           <button type="button" className="button button-primary" onClick={searchRecommendations} disabled={loading}>
             {loading ? "추천 계산 중..." : "추천 다시 계산"}
           </button>
+          <button type="button" className="button button-ghost" onClick={saveCurrentSnapshot}>
+            현재 조건 저장
+          </button>
           <span className="inline-note">API rate limit: 분당 30회</span>
         </div>
         {error ? <p className="error-text">{error} (기본 추천안으로 표시 중)</p> : null}
+        {saveMessage ? (
+          <p className="inline-note" style={{ marginTop: "0.45rem" }}>
+            {saveMessage}
+          </p>
+        ) : null}
         {appliedRules.length > 0 ? (
           <p className="inline-note" style={{ marginTop: "0.4rem" }}>
             적용 조건: {appliedRules.join(" / ")}
           </p>
+        ) : null}
+
+        {savedSnapshots.length > 0 ? (
+          <div style={{ marginTop: "0.8rem" }}>
+            <div className="split-note" style={{ marginBottom: "0.4rem" }}>
+              <p className="list-title" style={{ margin: 0 }}>
+                저장한 조건 {savedSnapshots.length}개
+              </p>
+              <button type="button" className="button button-ghost" onClick={clearRoleSnapshots}>
+                모두 삭제
+              </button>
+            </div>
+            <div className="chip-row" style={{ marginTop: 0 }}>
+              {savedSnapshots.map((snapshot) => (
+                <div key={snapshot.id} style={{ display: "inline-flex", alignItems: "center", gap: "0.32rem" }}>
+                  <button
+                    type="button"
+                    className="role-pill"
+                    onClick={() => applySnapshot(snapshot)}
+                    title={`${snapshot.teamSize} · ${snapshot.timeline} · ${snapshot.priority}`}
+                  >
+                    {snapshot.teamSize} · {snapshot.timeline} · {snapshot.priority}
+                  </button>
+                  <button
+                    type="button"
+                    className="button button-ghost"
+                    onClick={() => removeSnapshot(snapshot.id)}
+                    style={{ padding: "0.18rem 0.5rem", minHeight: "auto" }}
+                    aria-label="저장 조건 삭제"
+                  >
+                    삭제
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
         ) : null}
       </section>
 
