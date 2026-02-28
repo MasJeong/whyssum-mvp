@@ -106,7 +106,10 @@ npm run build
 - Add comments when logic is non-obvious (complex scoring, fallback chains, security constraints, caching/debounce behavior).
 - Prefer explaining `why` and constraints over repeating `what` the code already states.
 - Keep comments concise (1-2 lines near the relevant block) and update/remove them when logic changes.
-- For exported functions with non-trivial behavior, short JSDoc-style intent notes are allowed.
+- Method/function documentation is mandatory for this repository:
+  - Every function/method must have a JSDoc block directly above it.
+  - At minimum include: one-line summary, `@param` tags (all params), `@returns` (except true void handlers).
+  - Trivial one-liners may use a compact 1-2 line JSDoc, but JSDoc omission is not allowed.
 - Preferred JSDoc baseline for complex functions:
   - Summary line
   - Purpose (decision support)
@@ -122,7 +125,8 @@ npm run build
 - Comment levels: inline (local intent), block/JSDoc (function contract), file header (module responsibility), ADR/docs (architecture decisions).
 - Language for source comments:
   - Inline comments may be Korean when domain context is Korean-first.
-  - JSDoc for exported/public complex functions should be English-friendly for tooling consistency.
+  - JSDoc should be written in Korean-first wording for maintainability by local developers.
+  - English terms may be appended only when needed for tooling/library terminology.
 - JSDoc trigger rules (required):
   - Scoring/calculation functions with weights, heuristics, caps, or thresholds
   - API handlers with fallback chains, error policy, or security-sensitive behavior

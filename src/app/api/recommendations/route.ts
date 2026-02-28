@@ -7,8 +7,11 @@ import { parseRecommendationQuery } from "@/lib/security/validation";
 const RATE_LIMIT_WINDOW_MS = 60_000;
 const RATE_LIMIT_PER_WINDOW = 30;
 
-// 팀 규모 문자열("1~3명", "5~15명")에서 상한 인원 숫자를 추출해
-// 점수 조정 규칙(소규모/대규모 분기)에 사용한다.
+/**
+ * 팀 규모 문자열에서 상한 인원 수를 추출한다.
+ * @param value 팀 규모 문자열(예: 1~3명)
+ * @returns 추출된 상한 인원 수 또는 null
+ */
 function extractMaxTeamSize(value?: string | null): number | null {
   if (!value) return null;
   const numbers = value.match(/\d+/g);
@@ -16,6 +19,11 @@ function extractMaxTeamSize(value?: string | null): number | null {
   return Number(numbers[numbers.length - 1]);
 }
 
+/**
+ * 점수를 0~100 범위 정수로 제한한다.
+ * @param value 원본 점수
+ * @returns 보정된 점수
+ */
 function clampScore(value: number) {
   return Math.max(0, Math.min(100, Math.round(value)));
 }
@@ -36,6 +44,11 @@ type RoleTrendSignals = {
   avgDemand: number;
 };
 
+/**
+ * 직무별 트렌드 데이터에서 속도/안정성/확장성 신호를 계산한다.
+ * @param role 직무 키
+ * @returns 역할 트렌드 신호 요약
+ */
 function computeRoleTrendSignals(role: RoleKey): RoleTrendSignals {
   const metrics = trendData[role];
   if (!metrics || metrics.length === 0) {
@@ -67,18 +80,35 @@ function computeRoleTrendSignals(role: RoleKey): RoleTrendSignals {
   };
 }
 
+/**
+ * 신뢰도 점수를 레벨 구간으로 변환한다.
+ * @param score 신뢰도 점수
+ * @returns 신뢰도 레벨
+ */
 function getTrustLevel(score: number): TrustLevel {
   if (score >= 80) return "High";
   if (score >= 60) return "Medium";
   return "Low";
 }
 
+/**
+ * 추천 라벨별 기본 트레이드오프 축 점수를 반환한다.
+ * @param label 추천 라벨
+ * @returns 기본 트레이드오프 점수
+ */
 function getBaseTradeoff(label: "안정형" | "속도형" | "확장형"): TradeoffAxis {
   if (label === "안정형") return { speed: 58, stability: 90, scalability: 72 };
   if (label === "속도형") return { speed: 90, stability: 60, scalability: 63 };
   return { speed: 62, stability: 68, scalability: 93 };
 }
 
+/**
+ * 일정/우선순위/팀규모 조건을 기반으로 트레이드오프 축을 보정한다.
+ * @param base 기본 트레이드오프 점수
+ * @param query 사용자 입력 조건
+ * @param maxTeam 팀 규모 상한값
+ * @returns 보정된 트레이드오프 점수
+ */
 function applyTradeoffAdjustments(
   base: TradeoffAxis,
   query: { timeline?: string | null; priority?: string | null },
@@ -145,6 +175,13 @@ function computeConfidenceScore(fitScore: number, reasonCount: number, trendSign
   return clampScore(fitScore * 0.62 + trendSignal * 0.28 + ruleBonus);
 }
 
+/**
+ * 추천 타입과 현재 조건을 바탕으로 한 줄 설명(Why now)을 생성한다.
+ * @param label 추천 라벨
+ * @param trendSignals 역할별 트렌드 신호
+ * @param query 사용자 입력 조건
+ * @returns 사용자 안내 문구
+ */
 function buildWhyNow(
   label: "안정형" | "속도형" | "확장형",
   trendSignals: RoleTrendSignals,
@@ -180,6 +217,12 @@ type ScoredRecommendation = (typeof recommendations)[RoleKey][number] & {
   reasonCount: number;
 };
 
+/**
+ * 사용자 조건을 추천 점수에 반영해 최종 추천 목록과 적용 규칙을 만든다.
+ * @param role 직무 키
+ * @param query 사용자 입력 조건
+ * @returns 조건 반영 추천 결과와 적용 규칙 목록
+ */
 function applyConditionScore(role: RoleKey, query: { teamSize?: string | null; timeline?: string | null; priority?: string | null }) {
   const roleTrendSignals = computeRoleTrendSignals(role);
   const roleRecommendations: ScoredRecommendation[] = recommendations[role].map((item) => ({
@@ -310,6 +353,13 @@ function applyConditionScore(role: RoleKey, query: { teamSize?: string | null; t
   return { roleRecommendations, adjustments };
 }
 
+/**
+ * 응답에 rate-limit 헤더를 일관되게 설정한다.
+ * @param response 원본 응답
+ * @param remaining 남은 요청 수
+ * @param resetAt 제한 리셋 시각(ms)
+ * @returns 헤더가 반영된 응답
+ */
 function setRateLimitHeaders(response: NextResponse, remaining: number, resetAt: number) {
   response.headers.set("X-RateLimit-Limit", String(RATE_LIMIT_PER_WINDOW));
   response.headers.set("X-RateLimit-Remaining", String(Math.max(0, remaining)));
@@ -317,6 +367,11 @@ function setRateLimitHeaders(response: NextResponse, remaining: number, resetAt:
   return response;
 }
 
+/**
+ * 추천 API 진입점으로 파라미터 검증, 점수 계산, 제한 헤더 적용을 수행한다.
+ * @param request HTTP 요청 객체
+ * @returns 추천 결과 또는 오류 응답
+ */
 export async function GET(request: Request) {
   const ip = getClientIp(request.headers.get("x-forwarded-for")?.split(",")[0] ?? null);
   const rate = checkRateLimit(`recommendations:${ip}`, {

@@ -115,6 +115,11 @@ async function fetchJson(url: string) {
   return response.json();
 }
 
+/**
+ * npm 주간 다운로드 수를 조회한다.
+ * @param pkg npm 패키지명
+ * @returns 다운로드 수 또는 null
+ */
 async function fetchNpmWeeklyDownloads(pkg: string): Promise<number | null> {
   try {
     const result = await fetchJson(`https://api.npmjs.org/downloads/point/last-week/${encodeURIComponent(pkg)}`);
@@ -127,6 +132,11 @@ async function fetchNpmWeeklyDownloads(pkg: string): Promise<number | null> {
   }
 }
 
+/**
+ * PyPI 최근 30일 다운로드 수를 조회한다.
+ * @param project PyPI 프로젝트명
+ * @returns 다운로드 수 또는 null
+ */
 async function fetchPypiMonthlyDownloads(project: string): Promise<number | null> {
   try {
     const result = await fetchJson(`https://pypistats.org/api/packages/${encodeURIComponent(project)}/recent`);
@@ -137,6 +147,11 @@ async function fetchPypiMonthlyDownloads(project: string): Promise<number | null
   }
 }
 
+/**
+ * 수치 배열을 비율(합계 100 기준)로 정규화한다.
+ * @param values 원본 점수 배열
+ * @returns 정규화된 백분율 배열
+ */
 function normalizeToPercent(values: number[]) {
   const total = values.reduce((sum, value) => sum + value, 0);
   if (total <= 0) {
@@ -146,10 +161,23 @@ function normalizeToPercent(values: number[]) {
   return values.map((value) => Math.max(1, Math.round((value / total) * 100)));
 }
 
+/**
+ * 값을 최소/최대 경계 안으로 반올림해 제한한다.
+ * @param min 하한값
+ * @param max 상한값
+ * @param value 대상 값
+ * @returns 경계 내 정수 값
+ */
 function clamp(min: number, max: number, value: number) {
   return Math.max(min, Math.min(max, Math.round(value)));
 }
 
+/**
+ * 라이브 소스 실패 시 사용할 직무별 폴백 스냅샷을 생성한다.
+ * @param role 직무 키
+ * @param tool 도구명
+ * @returns 폴백 저장소 스냅샷
+ */
 function fallbackSnapshot(role: RoleKey, tool: string): RepoSnapshot {
   const fallback = trendData[role].find((item) => item.tool === tool);
   if (!fallback) {
@@ -164,6 +192,12 @@ function fallbackSnapshot(role: RoleKey, tool: string): RepoSnapshot {
   };
 }
 
+/**
+ * 저장소 메타데이터와 패키지 신호를 결합해 도구 스냅샷을 수집한다.
+ * @param role 직무 키
+ * @param item 조회할 카탈로그 항목
+ * @returns 라이브 또는 폴백 스냅샷
+ */
 async function fetchRepoSnapshot(role: RoleKey, item: CatalogItem): Promise<RepoSnapshot> {
   const now = Date.now();
   const cached = snapshotCache.get(item.repo);
@@ -303,6 +337,11 @@ function toTrendMetrics(catalog: CatalogItem[], snapshots: RepoSnapshot[]): Tren
   });
 }
 
+/**
+ * 직무별 라이브 트렌드 지표를 수집하고 실패 시 샘플 데이터로 폴백한다.
+ * @param role 직무 키
+ * @returns 트렌드 지표/모드/출처 메타데이터
+ */
 export async function getRoleTrendMetrics(role: RoleKey): Promise<RoleTrendResult> {
   const catalog = roleCatalog[role];
 

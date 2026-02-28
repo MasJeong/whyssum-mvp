@@ -6,6 +6,12 @@ type Params = {
   params: Promise<{ role: string }>;
 };
 
+/**
+ * 직무별 트렌드 API 진입점으로 role 파라미터를 검증 후 지표를 반환한다.
+ * @param _request HTTP 요청 객체
+ * @param params 동적 라우트 파라미터
+ * @returns 직무별 트렌드 응답
+ */
 export async function GET(_request: Request, { params }: Params) {
   const { role } = await params;
   const roleKey = role as RoleKey;

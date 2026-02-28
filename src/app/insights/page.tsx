@@ -1,5 +1,9 @@
 import { insightCards } from "@/lib/mvp-data";
 
+/**
+ * 월간 인사이트 요약 페이지를 렌더링한다.
+ * @returns 인사이트 페이지 UI
+ */
 export default function InsightsPage() {
   return (
     <main className="container page">

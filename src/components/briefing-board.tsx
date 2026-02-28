@@ -38,6 +38,10 @@ const routeByRole: Record<string, string> = {
   all: "/scenarios/backend",
 };
 
+/**
+ * 브리핑 목록을 필터 조건으로 조회하고 카드 형태로 보여준다.
+ * @returns 브리핑 보드 UI
+ */
 export default function BriefingBoard() {
   const [role, setRole] = useState("all");
   const [impact, setImpact] = useState("all");
@@ -50,6 +54,10 @@ export default function BriefingBoard() {
   useEffect(() => {
     let active = true;
 
+    /**
+     * 현재 필터 조건으로 브리핑 목록을 조회하고 상태를 갱신한다.
+     * @returns 없음
+     */
     const fetchItems = async () => {
       setLoading(true);
       setError(null);

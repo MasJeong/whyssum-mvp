@@ -1,5 +1,9 @@
 import WatchlistView from "@/components/watchlist-view";
 
+/**
+ * 저장한 관심 도구 목록 페이지를 렌더링한다.
+ * @returns 관심리스트 페이지 UI
+ */
 export default function WatchlistPage() {
   return (
     <main className="container page">

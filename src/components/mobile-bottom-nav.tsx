@@ -11,6 +11,10 @@ const tabs = [
   { href: "/watchlist", label: "관심" },
 ];
 
+/**
+ * 모바일 하단 탭 내비게이션을 렌더링한다.
+ * @returns 모바일 하단 메뉴
+ */
 export default function MobileBottomNav() {
   const pathname = usePathname();
 

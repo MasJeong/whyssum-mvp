@@ -27,6 +27,11 @@ export const recommendationQuerySchema = z.object({
 
 export type RecommendationQuery = z.infer<typeof recommendationQuerySchema>;
 
+/**
+ * 추천 API 쿼리 문자열을 스키마로 검증해 안전한 입력 객체로 변환한다.
+ * @param params URL 검색 파라미터
+ * @returns 검증된 추천 쿼리 객체
+ */
 export function parseRecommendationQuery(params: URLSearchParams): RecommendationQuery {
   const payload = {
     role: params.get("role"),

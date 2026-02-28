@@ -10,6 +10,11 @@ export const metadata: Metadata = {
   description: "직무별 도구 선택의 이유를 보여주는 가벼운 데이터 플랫폼",
 };
 
+/**
+ * 전체 페이지 공통 레이아웃(헤더/푸터/모바일 내비게이션)을 구성한다.
+ * @param children 각 라우트 페이지 콘텐츠
+ * @returns 루트 레이아웃
+ */
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {

@@ -39,6 +39,7 @@
 - 보안 기본선 유지(CSP, rate limit, 입력 검증)
 - 문서(`review_docs`)는 변경 시점마다 최신 상태 유지
 - lint/build를 통과해야 반영 완료로 간주
+- TypeScript/TSX의 모든 named function/method는 한국어 중심 JSDoc을 필수로 가진다
 
 ## 이번 라운드 구현 반영
 

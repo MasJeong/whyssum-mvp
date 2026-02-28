@@ -13,6 +13,11 @@ const csp = [
   "connect-src 'self' https:",
 ].join("; ");
 
+/**
+ * 전역 보안 헤더를 주입하고 API/개인화 경로의 검색 인덱싱을 차단한다.
+ * @param request Next.js 미들웨어 요청 객체
+ * @returns 보안 헤더가 반영된 응답
+ */
 export function middleware(request: NextRequest) {
   const response = NextResponse.next();
   const isHttps = request.nextUrl.protocol === "https:";

@@ -10,6 +10,12 @@ type PageProps = {
   searchParams: Promise<{ topN?: string }>;
 };
 
+/**
+ * 직무별 트렌드 상세 페이지를 렌더링한다.
+ * @param params 동적 라우트 파라미터
+ * @param searchParams 쿼리 파라미터(topN)
+ * @returns 트렌드 페이지 UI
+ */
 export default async function TrendByRolePage({ params, searchParams }: PageProps) {
   const { role } = await params;
   const query = await searchParams;

@@ -121,6 +121,11 @@ type FilterParams = {
   periodDays?: number;
 };
 
+/**
+ * 직무/영향도/기간 조건으로 브리핑 목록을 필터링하고 최신순 정렬한다.
+ * @param params 필터 조건
+ * @returns 조건에 맞는 브리핑 목록
+ */
 export function filterBriefings(params: FilterParams) {
   const now = Date.now();
   const maxAgeMs = params.periodDays ? params.periodDays * 24 * 60 * 60 * 1000 : null;

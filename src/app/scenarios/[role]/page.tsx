@@ -7,6 +7,11 @@ type PageProps = {
   params: Promise<{ role: string }>;
 };
 
+/**
+ * 직무별 상황추천 페이지를 렌더링한다.
+ * @param params 동적 라우트 파라미터
+ * @returns 상황추천 페이지 UI
+ */
 export default async function ScenarioPage({ params }: PageProps) {
   const { role } = await params;
   const roleKey = role as RoleKey;

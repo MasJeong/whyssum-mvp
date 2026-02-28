@@ -8,6 +8,10 @@ const WATCHLIST_CHANGED_EVENT = "whyssum:watchlist-changed";
 let cachedWatchlistRaw: string | null = null;
 let cachedWatchlist: string[] = [];
 
+/**
+ * 로컬 저장소에서 관심리스트를 읽고 문자열 항목만 안전하게 반환한다.
+ * @returns 관심리스트 키 배열
+ */
 function readWatchlist(): string[] {
   if (typeof window === "undefined") return [];
   try {
@@ -20,12 +24,22 @@ function readWatchlist(): string[] {
   }
 }
 
+/**
+ * 관심리스트 배열을 저장하고 동일 탭 갱신 이벤트를 발생시킨다.
+ * @param items 저장할 관심리스트 키 목록
+ * @returns 없음
+ */
 function writeWatchlist(items: string[]) {
   if (typeof window === "undefined") return;
   window.localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
   window.dispatchEvent(new Event(WATCHLIST_CHANGED_EVENT));
 }
 
+/**
+ * 저장소 변경 이벤트를 구독해 목록 렌더를 동기화한다.
+ * @param onStoreChange 변경 알림 콜백
+ * @returns 구독 해제 함수
+ */
 function subscribeWatchlist(onStoreChange: () => void) {
   if (typeof window === "undefined") {
     return () => {};
@@ -41,6 +55,10 @@ function subscribeWatchlist(onStoreChange: () => void) {
   };
 }
 
+/**
+ * 클라이언트 관심리스트 스냅샷을 안정적으로 반환한다.
+ * @returns 현재 관심리스트 스냅샷
+ */
 function getWatchlistSnapshot() {
   if (typeof window === "undefined") return [];
 
@@ -55,10 +73,18 @@ function getWatchlistSnapshot() {
   return cachedWatchlist;
 }
 
+/**
+ * 서버 렌더링 기본 스냅샷을 반환한다.
+ * @returns 빈 관심리스트
+ */
 function getWatchlistServerSnapshot() {
   return [] as string[];
 }
 
+/**
+ * 저장된 관심 도구 목록을 조회/삭제할 수 있는 화면 컴포넌트다.
+ * @returns 관심리스트 UI
+ */
 export default function WatchlistView() {
   const items = useSyncExternalStore(subscribeWatchlist, getWatchlistSnapshot, getWatchlistServerSnapshot);
 
@@ -75,6 +101,11 @@ export default function WatchlistView() {
     [items],
   );
 
+  /**
+   * 특정 항목을 관심리스트에서 제거한다.
+   * @param key 삭제할 저장 키
+   * @returns 없음
+   */
   const removeItem = (key: string) => {
     const next = items.filter((item) => item !== key);
     writeWatchlist(next);

@@ -18,6 +18,10 @@ const faqItems = [
   },
 ];
 
+/**
+ * 메인 랜딩 페이지를 렌더링한다.
+ * @returns 홈 화면 UI
+ */
 export default function Home() {
   return (
     <main className="container page">

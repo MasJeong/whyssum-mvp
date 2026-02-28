@@ -13,6 +13,10 @@ const navItems = [
   { href: "/insights", label: "인사이트" },
 ];
 
+/**
+ * 현재 경로를 기준으로 상단 내비게이션 활성 상태를 렌더링한다.
+ * @returns 상단 메뉴 링크 목록
+ */
 export default function NavLinks() {
   const pathname = usePathname();
 

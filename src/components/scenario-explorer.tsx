@@ -52,8 +52,10 @@ const SNAPSHOT_STORAGE_KEY = "whyssum:scenario-snapshots";
 const LAST_SELECTION_STORAGE_KEY = "whyssum:last-scenario-selection";
 const MAX_SNAPSHOTS_PER_ROLE = 8;
 
-// 브라우저 저장소에서 읽은 값은 타입가드로 한 번 걸러
-// 잘못된 저장 데이터가 화면을 깨뜨리지 않게 방어한다.
+/**
+ * 저장소의 스냅샷 배열을 읽고 타입가드로 유효 항목만 반환한다.
+ * @returns 유효한 시나리오 스냅샷 목록
+ */
 function readAllScenarioSnapshots(): ScenarioSnapshot[] {
   if (typeof window === "undefined") return [];
 
@@ -78,11 +80,21 @@ function readAllScenarioSnapshots(): ScenarioSnapshot[] {
   }
 }
 
+/**
+ * 시나리오 스냅샷 목록을 로컬 저장소에 직렬화해 저장한다.
+ * @param items 저장할 스냅샷 목록
+ * @returns 없음
+ */
 function writeAllScenarioSnapshots(items: ScenarioSnapshot[]) {
   if (typeof window === "undefined") return;
   window.localStorage.setItem(SNAPSHOT_STORAGE_KEY, JSON.stringify(items));
 }
 
+/**
+ * 특정 직무의 스냅샷만 최신순으로 읽고 최대 개수로 제한한다.
+ * @param role 조회할 직무 키
+ * @returns 정렬/제한된 스냅샷 목록
+ */
 function readSnapshotsByRole(role: RoleKey): ScenarioSnapshot[] {
   return readAllScenarioSnapshots()
     .filter((item) => item.role === role)
@@ -90,6 +102,12 @@ function readSnapshotsByRole(role: RoleKey): ScenarioSnapshot[] {
     .slice(0, MAX_SNAPSHOTS_PER_ROLE);
 }
 
+/**
+ * 현재 직무의 마지막 선택값을 저장해 다음 방문 시 복원 가능하게 한다.
+ * @param role 직무 키
+ * @param selection 저장할 필터 선택값
+ * @returns 없음
+ */
 function saveLastScenarioSelection(role: RoleKey, selection: LastScenarioSelection) {
   if (typeof window === "undefined") return;
 
@@ -103,6 +121,11 @@ function saveLastScenarioSelection(role: RoleKey, selection: LastScenarioSelecti
   }
 }
 
+/**
+ * 저장된 마지막 선택값을 읽고 타입이 유효한 경우에만 반환한다.
+ * @param role 조회할 직무 키
+ * @returns 마지막 선택값 또는 null
+ */
 function readLastScenarioSelection(role: RoleKey): LastScenarioSelection | null {
   if (typeof window === "undefined") return null;
 
@@ -122,6 +145,10 @@ function readLastScenarioSelection(role: RoleKey): LastScenarioSelection | null 
   }
 }
 
+/**
+ * 스냅샷 식별자를 생성한다.
+ * @returns 충돌 가능성을 낮춘 스냅샷 ID 문자열
+ */
 function createSnapshotId() {
   return `snapshot-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 }
@@ -141,6 +168,11 @@ const presetByRole: Record<RoleKey, { label: string; teamSize: string; timeline:
   ],
 };
 
+/**
+ * 상황추천 화면에서 조건 기반 재계산/저장/상세 해설을 제공한다.
+ * @param role 현재 직무 키
+ * @returns 상황추천 인터랙션 UI
+ */
 export default function ScenarioExplorer({ role }: ScenarioExplorerProps) {
   const roleScenarios = useMemo(() => scenarios.filter((item) => item.role === role), [role]);
 
@@ -200,6 +232,10 @@ export default function ScenarioExplorer({ role }: ScenarioExplorerProps) {
     saveLastScenarioSelection(role, { teamSize, timeline, priority });
   }, [priority, role, teamSize, timeline]);
 
+  /**
+   * 현재 필터를 기준으로 추천 API를 호출하고 결과 상태를 갱신한다.
+   * @returns 없음
+   */
   const searchRecommendations = async () => {
     setLoading(true);
     setError(null);
@@ -251,26 +287,50 @@ export default function ScenarioExplorer({ role }: ScenarioExplorerProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [teamSize, timeline, priority, role]);
 
+  /**
+   * API 보조 지표가 없을 때 적합도 기반 신뢰도 점수를 계산한다.
+   * @param item 추천 카드 데이터
+   * @returns 대체 신뢰도 점수
+   */
   const getFallbackConfidence = (item: RecommendationItem) => Math.max(45, Math.min(95, Math.round(item.fitScore * 0.82)));
 
+  /**
+   * 신뢰도 점수를 뱃지 구간(High/Medium/Low)으로 변환한다.
+   * @param confidenceScore 신뢰도 점수
+   * @returns 신뢰도 레벨
+   */
   const getFallbackTrustLevel = (confidenceScore: number): RecommendationTrustLevel => {
     if (confidenceScore >= 80) return "High";
     if (confidenceScore >= 60) return "Medium";
     return "Low";
   };
 
+  /**
+   * 추천 타입별 기본 트레이드오프 축 값을 반환한다.
+   * @param label 추천 타입 라벨
+   * @returns 속도/안정성/확장성 기본 점수
+   */
   const getFallbackTradeoff = (label: Recommendation["label"]) => {
     if (label === "안정형") return { speed: 58, stability: 90, scalability: 72 };
     if (label === "속도형") return { speed: 90, stability: 60, scalability: 63 };
     return { speed: 62, stability: 68, scalability: 93 };
   };
 
+  /**
+   * 추천 타입별 기본 한 줄 해설을 제공한다.
+   * @param label 추천 타입 라벨
+   * @returns 기본 Why-now 문구
+   */
   const getFallbackWhyNow = (label: Recommendation["label"]) => {
     if (label === "안정형") return "운영 안정성과 협업 일관성을 우선할 때 리스크가 가장 낮은 선택입니다.";
     if (label === "속도형") return "최근 빠른 실험-배포 루프가 중요해져 초기 검증 속도에 유리합니다.";
     return "성장 구간에서 구조적 확장 여유를 선반영해야 할 때 효과적입니다.";
   };
 
+  /**
+   * 현재 필터 조합을 스냅샷으로 저장하거나 기존 항목을 갱신한다.
+   * @returns 없음
+   */
   const saveCurrentSnapshot = () => {
     if (!teamSize || !timeline || !priority) return;
 
@@ -319,6 +379,11 @@ export default function ScenarioExplorer({ role }: ScenarioExplorerProps) {
     setSavedSnapshots(readSnapshotsByRole(role));
   };
 
+  /**
+   * 저장된 스냅샷을 현재 필터 상태로 적용한다.
+   * @param snapshot 적용할 스냅샷
+   * @returns 없음
+   */
   const applySnapshot = (snapshot: ScenarioSnapshot) => {
     setTeamSize(snapshot.teamSize);
     setTimeline(snapshot.timeline);
@@ -326,6 +391,11 @@ export default function ScenarioExplorer({ role }: ScenarioExplorerProps) {
     setSaveMessage("저장된 조건을 불러왔습니다.");
   };
 
+  /**
+   * 특정 스냅샷을 삭제하고 목록을 다시 로드한다.
+   * @param id 삭제할 스냅샷 ID
+   * @returns 없음
+   */
   const removeSnapshot = (id: string) => {
     const nextAll = readAllScenarioSnapshots().filter((item) => item.id !== id);
     writeAllScenarioSnapshots(nextAll);
@@ -333,6 +403,10 @@ export default function ScenarioExplorer({ role }: ScenarioExplorerProps) {
     setSaveMessage("저장 조건을 삭제했습니다.");
   };
 
+  /**
+   * 현재 직무의 저장 스냅샷을 모두 삭제한다.
+   * @returns 없음
+   */
   const clearRoleSnapshots = () => {
     const nextAll = readAllScenarioSnapshots().filter((item) => item.role !== role);
     writeAllScenarioSnapshots(nextAll);
@@ -340,6 +414,11 @@ export default function ScenarioExplorer({ role }: ScenarioExplorerProps) {
     setSaveMessage("이 직무의 저장 조건을 모두 삭제했습니다.");
   };
 
+  /**
+   * 카드 상세 열림 상태를 토글한다.
+   * @param cardKey 카드 고유 키
+   * @returns 없음
+   */
   const toggleCardDetail = (cardKey: string) => {
     setExpandedCards((prev) => ({
       ...prev,
@@ -347,18 +426,33 @@ export default function ScenarioExplorer({ role }: ScenarioExplorerProps) {
     }));
   };
 
+  /**
+   * 적합도 점수를 사용자 친화적인 범주로 매핑한다.
+   * @param score 적합도 점수
+   * @returns 추천 강도 라벨
+   */
   const getFitCategory = (score: number) => {
     if (score >= 85) return "강력 추천";
     if (score >= 70) return "추천";
     return "조건부 추천";
   };
 
+  /**
+   * 리스크 개수를 위험도 라벨로 변환한다.
+   * @param riskCount 리스크 항목 개수
+   * @returns 위험도 라벨
+   */
   const getRiskLevel = (riskCount: number) => {
     if (riskCount >= 3) return "높음";
     if (riskCount >= 2) return "보통";
     return "낮음";
   };
 
+  /**
+   * 세 축 중 가장 강한 의사결정 축을 계산한다.
+   * @param tradeoff 트레이드오프 축 점수
+   * @returns 우세 축 라벨과 점수
+   */
   const getDominantAxis = (tradeoff: { speed: number; stability: number; scalability: number }) => {
     if (tradeoff.speed >= tradeoff.stability && tradeoff.speed >= tradeoff.scalability) {
       return { label: "속도 중심", value: tradeoff.speed };
@@ -371,6 +465,11 @@ export default function ScenarioExplorer({ role }: ScenarioExplorerProps) {
     return { label: "확장성 중심", value: tradeoff.scalability };
   };
 
+  /**
+   * 점수/리스크/규칙 반영 결과를 기반으로 실행 체크리스트를 동적으로 구성한다.
+   * @param input 카드 상세 해설 생성에 필요한 입력 값 묶음
+   * @returns 최대 6개의 실행 체크리스트
+   */
   const buildDynamicChecklist = (input: {
     scoreDelta: number;
     dominantAxis: { label: string; value: number };

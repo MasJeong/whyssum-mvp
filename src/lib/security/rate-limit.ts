@@ -28,6 +28,12 @@ function cleanupExpired(now: number) {
   }
 }
 
+/**
+ * 메모리 버킷 기반으로 요청 제한 가능 여부와 남은 횟수를 계산한다.
+ * @param key 제한을 적용할 식별 키
+ * @param options 제한 횟수/윈도우 설정
+ * @returns 허용 여부와 잔여 횟수, 리셋 시각
+ */
 export function checkRateLimit(key: string, options: RateLimitOptions): RateLimitResult {
   const now = Date.now();
   cleanupExpired(now);
@@ -50,6 +56,11 @@ export function checkRateLimit(key: string, options: RateLimitOptions): RateLimi
   };
 }
 
+/**
+ * 전달받은 IP 값을 정규화해 비어 있으면 unknown으로 대체한다.
+ * @param ip 원본 IP 문자열
+ * @returns 정규화된 IP 키
+ */
 export function getClientIp(ip: string | null): string {
   return ip?.trim() || "unknown";
 }

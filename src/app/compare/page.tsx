@@ -1,6 +1,10 @@
 import CompareInteractive from "@/components/compare-interactive";
 import { trendData } from "@/lib/mvp-data";
 
+/**
+ * 도구 비교 페이지를 렌더링한다.
+ * @returns 비교 페이지 UI
+ */
 export default function ComparePage() {
   const backendAvg = Math.round(
     trendData.backend.reduce((sum, row) => sum + row.demandIndex, 0) / trendData.backend.length,

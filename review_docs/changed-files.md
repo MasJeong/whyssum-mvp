@@ -190,3 +190,11 @@
   - 배너/간격 유틸 클래스 추가 및 인라인 간격 스타일 일부 정리
 - `README.md`, `review_docs/requirements.md`, `review_docs/cautions.md`
   - 2차 UX 개선 의도와 QA 항목 문서 동기화
+
+## 추가 반영 (전역 함수 JSDoc 정비)
+
+- `src/**/*.ts`, `src/**/*.tsx`, `middleware.ts`
+  - 함수/메서드 단위 JSDoc를 한국어 중심으로 전수 정비
+  - 페이지/컴포넌트/API/유틸의 named function 누락 항목 보강
+- `review_docs/requirements.md`, `review_docs/cautions.md`
+  - 주석 정책(함수 JSDoc 필수)과 검증 포인트 반영

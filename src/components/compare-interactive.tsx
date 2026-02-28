@@ -32,6 +32,10 @@ const defaultSelectedByRole: Record<RoleKey, string[]> = {
   pm: ["Notion", "Jira", "Linear"],
 };
 
+/**
+ * 직무별 후보를 선택해 핵심 지표를 나란히 비교하는 인터랙션 컴포넌트다.
+ * @returns 비교 화면 본문
+ */
 export default function CompareInteractive() {
   const [role, setRole] = useState<RoleKey>("backend");
   const [selected, setSelected] = useState<Set<string>>(new Set(defaultSelectedByRole.backend));
@@ -41,6 +45,10 @@ export default function CompareInteractive() {
 
   useEffect(() => {
     let active = true;
+    /**
+     * 현재 직무의 트렌드 지표를 API에서 가져오고 실패 시 폴백 모드로 전환한다.
+     * @returns 없음
+     */
     const fetchMetrics = async () => {
       setMode("loading");
       setLoadError(null);
@@ -100,6 +108,11 @@ export default function CompareInteractive() {
     });
   }, [liveMetrics, role]);
 
+  /**
+   * 직무를 전환하고 해당 직무의 기본 비교 선택값으로 초기화한다.
+   * @param nextRole 전환할 직무 키
+   * @returns 없음
+   */
   const switchRole = (nextRole: RoleKey) => {
     setRole(nextRole);
     setSelected(new Set(defaultSelectedByRole[nextRole]));
@@ -129,6 +142,11 @@ export default function CompareInteractive() {
     return scored[0] ?? null;
   }, [selectedItems]);
 
+  /**
+   * 비교 후보 선택 상태를 토글하며 최소 1개, 최대 4개 제약을 유지한다.
+   * @param name 토글할 후보 이름
+   * @returns 없음
+   */
   const toggleSelection = (name: string) => {
     setSelected((prev) => {
       const next = new Set(prev);

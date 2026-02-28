@@ -16,6 +16,11 @@ function setRateLimitHeaders(response: NextResponse, remaining: number, resetAt:
   return response;
 }
 
+/**
+ * 브리핑 목록 API 진입점으로 필터 파라미터를 적용해 결과를 반환한다.
+ * @param request HTTP 요청 객체
+ * @returns 브리핑 목록 또는 제한 응답
+ */
 export async function GET(request: Request) {
   const ip = getClientIp(request.headers.get("x-forwarded-for")?.split(",")[0] ?? null);
   const rate = checkRateLimit(`briefings:${ip}`, {

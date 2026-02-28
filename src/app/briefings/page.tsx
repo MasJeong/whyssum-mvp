@@ -1,5 +1,9 @@
 import BriefingBoard from "@/components/briefing-board";
 
+/**
+ * 트렌드 브리핑 페이지를 렌더링한다.
+ * @returns 브리핑 페이지 UI
+ */
 export default function BriefingsPage() {
   return (
     <main className="container page">

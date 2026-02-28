@@ -1,6 +1,10 @@
 import Link from "next/link";
 import { roles } from "@/lib/mvp-data";
 
+/**
+ * 직무 선택 허브 페이지를 렌더링한다.
+ * @returns 직무 허브 UI
+ */
 export default function RolesPage() {
   return (
     <main className="container page">
