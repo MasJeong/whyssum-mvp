@@ -3,6 +3,12 @@
 This file is for coding agents working in this repository.
 Scope: whole repository.
 
+## How to Use This Document
+
+- Treat this file as the default execution contract for repository work.
+- If instructions conflict, follow this precedence: direct user request > system/developer constraints > this file.
+- Verify assumptions against real files before making changes.
+
 ## Project Snapshot
 
 - App name: `whyssum`
@@ -69,17 +75,17 @@ Current state:
 - No dedicated test runner is configured in `package.json` (no `test` script).
 - Use lint + build as required verification gates.
 
-Required validation before finishing work:
+Required validation before marking work done, committing, or opening a PR:
 
 ```bash
 npm run lint
 npm run build
 ```
 
-Single test guidance (future):
+Validation notes:
 
-- If a test framework is introduced later, add exact single-test commands here.
-- Do not invent non-existent test commands in this repo.
+- Do not invent or run non-existent test commands in this repository.
+- If a test framework is introduced later, add exact single-test commands here first.
 
 ## Coding Standards
 
@@ -89,6 +95,7 @@ Single test guidance (future):
 - Prefer explicit, narrow types over `any`.
 - Avoid type suppression (`@ts-ignore`, `@ts-expect-error`) unless explicitly approved.
 - Keep API request/response types colocated with route logic when practical.
+- If ESLint and TypeScript guidance appear to conflict, keep type safety first and resolve lint issues without disabling type checks.
 
 ### Imports
 
@@ -119,7 +126,7 @@ Single test guidance (future):
 - Default to Server Components in `app/` unless interactivity is needed.
 - Use `"use client"` only for interactive components.
 - API handlers live under `src/app/api/**/route.ts`.
-- For dynamic routes, keep current pattern using typed `params` in page files.
+- For dynamic routes, follow the existing typed Promise params pattern used in `src/app/trends/[role]/page.tsx` and `src/app/scenarios/[role]/page.tsx`.
 
 ### Error Handling
 
@@ -130,7 +137,8 @@ Single test guidance (future):
 
 ### Security
 
-- Keep middleware security headers intact unless intentionally updated.
+- Keep middleware security headers intact.
+- Do not modify security headers unless explicitly requested.
 - Validate external input with Zod schemas.
 - Treat all query params as untrusted input.
 - Keep fallback behavior for external API failures.
@@ -151,12 +159,23 @@ When behavior, metrics, API contract, or UX flow changes:
    - `cautions.md`
    - `requirements.md`
    - `backend-review-guide.md` (if backend behavior changed)
+   - `review_docs/README.md` (if doc structure/usage guidance changed)
+   - `phase3-implementation-plan.md` (if implementation plan assumptions changed)
+   - `briefing-implementation-plan.md` (if briefing plan assumptions changed)
 
 Documentation should be updated in the same change set.
+
+## Decision Guidelines
+
+- If requirements are unclear and codebase context cannot disambiguate, ask one precise clarifying question.
+- If standards conflict, prioritize security and data safety over convenience.
+- If you discover repo instructions that appear outdated, note the discrepancy in your final message and follow the safest current behavior.
+- Do not bypass validation gates (`npm run lint`, `npm run build`) to save time.
 
 ## Git Workflow Expectations
 
 - Work on `main` unless instructed otherwise.
+- For substantial changes intended for review, create a feature branch before opening a PR.
 - Keep commits focused and descriptive.
 - Do not rewrite published history unless explicitly requested.
 - Before commit/push, ensure:
