@@ -165,7 +165,7 @@ export default function CompareInteractive() {
             );
           })}
         </div>
-        <p className="inline-note" style={{ marginTop: "0.6rem" }}>
+        <p className="inline-note mt-sm readable">
           현재 비교 기준: {roles.find((item) => item.key === role)?.name} · 데이터 모드: {mode.toUpperCase()}
         </p>
         {loadError ? <p className="error-text">{loadError} (샘플 데이터로 표시 중)</p> : null}
@@ -175,6 +175,7 @@ export default function CompareInteractive() {
         <h2>비교 결과</h2>
         <div className="table-wrap">
           <table>
+            <caption className="sr-only">선택한 도구 비교표: 채택률, 성장률, 난이도, 운영복잡도, 비용부담, 신뢰도</caption>
             <thead>
               <tr>
                 <th>기술</th>

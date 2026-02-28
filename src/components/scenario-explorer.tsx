@@ -429,7 +429,7 @@ export default function ScenarioExplorer({ role }: ScenarioExplorerProps) {
       <section className="card">
         <h2>조건 기반 추천</h2>
         <p className="muted">팀 규모, 일정, 우선순위를 선택하면 추천안을 다시 계산합니다.</p>
-        <div className="chip-row" style={{ marginTop: "0.6rem" }}>
+        <div className="chip-row mt-sm">
           {presetByRole[role].map((preset) => (
             <button
               key={preset.label}
@@ -488,29 +488,29 @@ export default function ScenarioExplorer({ role }: ScenarioExplorerProps) {
         </div>
         {error ? <p className="error-text">{error} (기본 추천안으로 표시 중)</p> : null}
         {saveMessage ? (
-          <p className="inline-note" style={{ marginTop: "0.45rem" }}>
+          <p className="inline-note mt-xs">
             {saveMessage}
           </p>
         ) : null}
         {appliedRules.length > 0 ? (
-          <p className="inline-note" style={{ marginTop: "0.4rem" }}>
+          <p className="inline-note mt-xs">
             적용 조건: {appliedRules.join(" / ")}
           </p>
         ) : null}
 
         {savedSnapshots.length > 0 ? (
-          <div style={{ marginTop: "0.8rem" }}>
-            <div className="split-note" style={{ marginBottom: "0.4rem" }}>
-              <p className="list-title" style={{ margin: 0 }}>
+          <div className="mt-md">
+            <div className="split-note mb-xs">
+              <p className="list-title no-margin">
                 저장한 조건 {savedSnapshots.length}개
               </p>
               <button type="button" className="button button-ghost" onClick={clearRoleSnapshots}>
                 모두 삭제
               </button>
             </div>
-            <div className="chip-row" style={{ marginTop: 0 }}>
+            <div className="chip-row">
               {savedSnapshots.map((snapshot) => (
-                <div key={snapshot.id} style={{ display: "inline-flex", alignItems: "center", gap: "0.32rem" }}>
+                <div key={snapshot.id} className="inline-cluster">
                   <button
                     type="button"
                     className="role-pill"
@@ -523,7 +523,7 @@ export default function ScenarioExplorer({ role }: ScenarioExplorerProps) {
                     type="button"
                     className="button button-ghost"
                     onClick={() => removeSnapshot(snapshot.id)}
-                    style={{ padding: "0.18rem 0.5rem", minHeight: "auto" }}
+                    style={{ padding: "0.18rem 0.5rem", minHeight: "34px" }}
                     aria-label="저장 조건 삭제"
                   >
                     삭제
@@ -566,18 +566,18 @@ export default function ScenarioExplorer({ role }: ScenarioExplorerProps) {
 
               return (
                 <>
-                  <div className="chip-row" style={{ marginTop: "0.2rem" }}>
+                  <div className="chip-row mt-xs">
                     <span className="chip">적합도 {pick.fitScore}점</span>
                     <span className={`trust-badge trust-${trustLevel.toLowerCase()}`}>
                       신뢰도 {trustLevel} ({confidenceScore})
                     </span>
                     <span className="chip">판단 {fitCategory}</span>
                   </div>
-                  <p className="inline-note" style={{ marginTop: "0.45rem" }}>
+                  <p className="inline-note mt-xs">
                     Why now: {whyNow}
                   </p>
                   <p className="list-title">의사결정 트레이드오프</p>
-                  <div style={{ display: "grid", gap: "0.45rem" }}>
+                  <div className="stack-sm">
                     <div>
                       <div className="meter-cell">
                         <span>속도 {tradeoff.speed}</span>
@@ -598,7 +598,7 @@ export default function ScenarioExplorer({ role }: ScenarioExplorerProps) {
                     </div>
                   </div>
 
-                  <div className="button-row" style={{ marginTop: "0.65rem" }}>
+                  <div className="button-row mt-sm">
                     <button
                       type="button"
                       className="button button-ghost"
@@ -612,7 +612,7 @@ export default function ScenarioExplorer({ role }: ScenarioExplorerProps) {
                   </div>
 
                   {isExpanded ? (
-                    <div id={`recommendation-detail-${cardKey}`} style={{ marginTop: "0.75rem", display: "grid", gap: "0.6rem" }}>
+                    <div id={`recommendation-detail-${cardKey}`} className="stack-md mt-sm">
                       <div>
                         <p className="list-title">상황 해설</p>
                         <ul>
@@ -636,7 +636,7 @@ export default function ScenarioExplorer({ role }: ScenarioExplorerProps) {
                       {appliedRules.length > 0 ? (
                         <div>
                           <p className="list-title">이번 계산에 반영된 조건</p>
-                          <div className="chip-row" style={{ marginTop: "0.2rem" }}>
+                          <div className="chip-row mt-xs">
                             {appliedRules.map((rule) => (
                               <span key={`${pick.label}-${rule}`} className="chip">
                                 {rule}
@@ -659,7 +659,7 @@ export default function ScenarioExplorer({ role }: ScenarioExplorerProps) {
                         </div>
                       ) : null}
 
-                      <div className="grid grid-2" style={{ gap: "0.6rem" }}>
+                      <div className="grid grid-2">
                         <div>
                           <p className="list-title">장점</p>
                           <ul>
