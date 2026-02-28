@@ -10,6 +10,7 @@
 - `backend-review-guide.md`: 백엔드 관점에서 전체 구현을 검토하는 가이드
 - `phase3-implementation-plan.md`: 고도화 기능 구현 계획서
 - `briefing-implementation-plan.md`: 트렌드 브리핑 기능 구현 계획서
+- `react-next-onboarding.md`: React/Next 구조와 추천 흐름 온보딩 가이드
 
 ## 검토 순서 추천
 
