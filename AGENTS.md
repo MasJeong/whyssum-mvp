@@ -107,6 +107,19 @@ npm run build
 - Prefer explaining `why` and constraints over repeating `what` the code already states.
 - Keep comments concise (1-2 lines near the relevant block) and update/remove them when logic changes.
 - For exported functions with non-trivial behavior, short JSDoc-style intent notes are allowed.
+- Preferred JSDoc baseline for complex functions:
+  - Summary line
+  - Purpose (decision support)
+  - Strategy (how inputs are combined)
+  - Trade-offs (bias/weight/caps/assumptions)
+  - `@param` meaning and expected range
+  - `@returns` range and semantic meaning
+- Avoid obvious comments like `// multiply fitScore by weight`; if code already says it, do not comment it.
+- For core calculation functions, prefer JSDoc with: Purpose, Strategy, Trade-offs, `@param` meaning/range, and `@returns` range/meaning.
+- For tunable constants/weights, add one-line rationale and mark changeable knobs explicitly (for future A/B tuning).
+- For formulas, add a short preface block that explains composition in plain language before the expression.
+- For API route logic, document data source assumptions, fallback behavior, and error policy when non-obvious.
+- Comment levels: inline (local intent), block/JSDoc (function contract), file header (module responsibility), ADR/docs (architecture decisions).
 
 ### React / Next.js conventions
 - Default to Server Components in `src/app/`.
