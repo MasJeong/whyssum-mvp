@@ -3,6 +3,12 @@ import { roles, sourceNote } from "@/lib/mvp-data";
 
 const heroTags = ["빠른 출시", "운영 안정성", "협업 효율", "비용 최적화"];
 
+const trustHighlights = [
+  "출처·모드·갱신 시각을 함께 표시합니다.",
+  "추천은 조건 변경 시 즉시 다시 계산됩니다.",
+  "관심리스트 저장은 내 브라우저에만 보관됩니다.",
+];
+
 const faqItems = [
   {
     q: "데이터는 어디서 오나요?",
@@ -28,16 +34,28 @@ export default function Home() {
       <section className="hero card hero-grid">
         <article>
           <p className="eyebrow">의사결정 중심 탐색 플랫폼</p>
-          <h1>요즘 뭐 쓰는지보다, 왜 쓰는지를 보여주는 곳</h1>
+          <h1>팀 도구 선택을 데이터 근거로 3분 안에 정리하세요</h1>
           <p className="muted readable">
-            직무별 트렌드 수치와 상황추천을 한 화면에서 연결해 도구 선택 근거를 빠르게 만들 수 있도록 구성했습니다.
+            직무별 트렌드, 상황추천, 비교를 한 흐름으로 연결해 회의 전에 바로 공유 가능한 선택 근거를 만듭니다.
           </p>
           <div className="button-row">
             <Link href="/roles" className="button button-primary">
-              직무별 시작하기
+              <span className="button-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="9" cy="8" r="2.5" />
+                  <path d="M4.5 17c.7-2.1 2.4-3.2 4.5-3.2s3.8 1.1 4.5 3.2" />
+                  <circle cx="16.8" cy="9" r="1.8" />
+                </svg>
+              </span>
+              1분 시작하기
             </Link>
             <Link href="/scenarios/backend" className="button button-ghost">
-              상황추천 바로 체험
+              <span className="button-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 4.5l1.9 3.8 4.2.6-3 2.9.7 4.2L12 14l-3.8 2 .7-4.2-3-2.9 4.2-.6L12 4.5z" />
+                </svg>
+              </span>
+              바로 추천 받기
             </Link>
           </div>
           <div className="chip-row mt-md">
@@ -80,9 +98,22 @@ export default function Home() {
               </div>
               <div className="button-row">
                 <Link href={`/trends/${role.key}`} className="button button-ghost">
+                  <span className="button-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M4 19h16" />
+                      <path d="M7 16V9" />
+                      <path d="M12 16V6" />
+                      <path d="M17 16v-4" />
+                    </svg>
+                  </span>
                   트렌드
                 </Link>
                 <Link href={`/scenarios/${role.key}`} className="button button-primary">
+                  <span className="button-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M12 4.5l1.9 3.8 4.2.6-3 2.9.7 4.2L12 14l-3.8 2 .7-4.2-3-2.9 4.2-.6L12 4.5z" />
+                    </svg>
+                  </span>
                   상황추천
                 </Link>
               </div>
@@ -96,6 +127,11 @@ export default function Home() {
           <p className="eyebrow">운영 신뢰 요소</p>
           <h2>데이터 투명성</h2>
           <p className="muted readable">지표는 출처/표본/업데이트 시점을 함께 표기하고, 추천 결과는 조건 변경 시 다시 계산합니다.</p>
+          <ul className="mt-sm">
+            {trustHighlights.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
           <p className="muted mt-sm">
             {sourceNote}
           </p>
@@ -106,9 +142,23 @@ export default function Home() {
           <p className="muted readable">핵심 변화만 모은 인사이트 페이지를 먼저 보고, 필요하면 트렌드/비교로 내려가세요.</p>
           <div className="button-row">
             <Link href="/insights" className="button button-primary">
+              <span className="button-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 4.8a5.5 5.5 0 0 0-3.3 9.9c.7.5 1.3 1.4 1.3 2.3h4c0-.9.6-1.8 1.3-2.3A5.5 5.5 0 0 0 12 4.8z" />
+                  <path d="M10.2 19h3.6" />
+                </svg>
+              </span>
               인사이트 보기
             </Link>
             <Link href="/trends/backend" className="button button-ghost">
+              <span className="button-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M4 19h16" />
+                  <path d="M7 16V9" />
+                  <path d="M12 16V6" />
+                  <path d="M17 16v-4" />
+                </svg>
+              </span>
               트렌드 보기
             </Link>
           </div>

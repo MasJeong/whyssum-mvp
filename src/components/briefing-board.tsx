@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import type { BriefingItem } from "@/lib/briefing-data";
 
+/** /api/briefings 응답 JSON 형태 */
 type ApiResponse = {
   items: BriefingItem[];
   count: number;
@@ -134,7 +135,7 @@ export default function BriefingBoard() {
             </select>
           </label>
         </div>
-        <p className="inline-note" style={{ marginTop: "0.55rem" }}>
+        <p className="inline-note mt-sm">
           {loading ? "업데이트 중..." : `마지막 조회: ${fetchedLabel}`}
         </p>
         {error ? <p className="error-text">{error}</p> : null}
@@ -164,20 +165,46 @@ export default function BriefingBoard() {
                   </span>
                 ))}
               </div>
-              <p className="inline-note" style={{ marginTop: "0.5rem" }}>
+              <p className="inline-note mt-xs">
                 출처: {item.sourceName} · {new Date(item.publishedAt).toLocaleDateString("ko-KR")}
               </p>
               <div className="button-row">
                 <a href={item.sourceUrl} target="_blank" rel="noreferrer" className="button button-ghost">
+                  <span className="button-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M14 5h5v5" />
+                      <path d="M10 14L19 5" />
+                      <path d="M19 13v6H5V5h6" />
+                    </svg>
+                  </span>
                   원문 보기
                 </a>
                 <Link href={item.role === "all" ? "/trends/backend" : `/trends/${item.role}`} className="button button-ghost">
+                  <span className="button-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M4 19h16" />
+                      <path d="M7 16V9" />
+                      <path d="M12 16V6" />
+                      <path d="M17 16v-4" />
+                    </svg>
+                  </span>
                   트렌드
                 </Link>
                 <Link href="/compare" className="button button-ghost">
+                  <span className="button-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="5" y="6" width="5" height="12" rx="1.2" />
+                      <rect x="14" y="6" width="5" height="12" rx="1.2" />
+                    </svg>
+                  </span>
                   비교
                 </Link>
                 <Link href={routeByRole[item.role] ?? "/scenarios/backend"} className="button button-primary">
+                  <span className="button-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M12 4.5l1.9 3.8 4.2.6-3 2.9.7 4.2L12 14l-3.8 2 .7-4.2-3-2.9 4.2-.6L12 4.5z" />
+                    </svg>
+                  </span>
                   상황추천
                 </Link>
               </div>

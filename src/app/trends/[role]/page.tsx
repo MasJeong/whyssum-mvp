@@ -5,6 +5,7 @@ import WatchlistToggle from "@/components/watchlist-toggle";
 import { getRoleTrendMetrics } from "@/lib/live-role-trends";
 import { roles, sourceNote, type RoleKey } from "@/lib/mvp-data";
 
+/** 트렌드 페이지 컴포넌트 props (Next.js 15+ params/searchParams는 Promise) */
 type PageProps = {
   params: Promise<{ role: string }>;
   searchParams: Promise<{ topN?: string }>;
@@ -53,7 +54,7 @@ export default async function TrendByRolePage({ params, searchParams }: PageProp
         <h1>{roleInfo.name}</h1>
         <p className="muted readable">{roleInfo.oneLiner}</p>
         <div className="chip-row mt-sm">
-          <span className="chip">데이터 모드: {trendResult.mode === "live" ? "LIVE" : "FALLBACK"}</span>
+          <span className="chip">데이터 신뢰 상태: {trendResult.mode === "live" ? "실시간 수집" : "안정 모드"}</span>
           <span className="chip">소스: {trendResult.source}</span>
         </div>
         <div className="role-switch mt-md">
@@ -180,6 +181,11 @@ export default async function TrendByRolePage({ params, searchParams }: PageProp
           </p>
         </div>
         <Link href={`/scenarios/${roleKey}`} className="button button-primary">
+          <span className="button-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 4.5l1.9 3.8 4.2.6-3 2.9.7 4.2L12 14l-3.8 2 .7-4.2-3-2.9 4.2-.6L12 4.5z" />
+            </svg>
+          </span>
           이 직무 상황추천 보기
         </Link>
       </section>

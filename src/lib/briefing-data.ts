@@ -115,6 +115,7 @@ export const briefingItems: BriefingItem[] = [
   },
 ];
 
+/** filterBriefings 필터 조건 (직무·영향도·기간) */
 type FilterParams = {
   role?: string | null;
   impact?: string | null;

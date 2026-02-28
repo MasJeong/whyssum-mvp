@@ -3,17 +3,21 @@ import { notFound } from "next/navigation";
 import ScenarioExplorer from "@/components/scenario-explorer";
 import { roles, scenarios, type RoleKey } from "@/lib/mvp-data";
 
+/** 상황추천 페이지 컴포넌트 props (Next.js 15+ params/searchParams는 Promise) */
 type PageProps = {
   params: Promise<{ role: string }>;
+  searchParams: Promise<{ teamSize?: string; timeline?: string; priority?: string }>;
 };
 
 /**
  * 직무별 상황추천 페이지를 렌더링한다.
  * @param params 동적 라우트 파라미터
+ * @param searchParams 필터 초기값 쿼리 파라미터
  * @returns 상황추천 페이지 UI
  */
-export default async function ScenarioPage({ params }: PageProps) {
+export default async function ScenarioPage({ params, searchParams }: PageProps) {
   const { role } = await params;
+  const query = await searchParams;
   const roleKey = role as RoleKey;
   const roleInfo = roles.find((item) => item.key === roleKey);
 
@@ -45,14 +49,25 @@ export default async function ScenarioPage({ params }: PageProps) {
         <h2>자주 찾는 상황</h2>
         <div className="chip-row">
           {roleScenarios.map((item) => (
-            <span className="chip" key={item.id}>
+            <Link
+              className="chip"
+              key={item.id}
+              href={`/scenarios/${roleKey}?teamSize=${encodeURIComponent(item.teamSize)}&timeline=${encodeURIComponent(item.timeline)}&priority=${encodeURIComponent(item.priority)}`}
+            >
               {item.teamSize} · {item.timeline} · {item.priority}
-            </span>
+            </Link>
           ))}
         </div>
       </section>
 
-      <ScenarioExplorer role={roleKey} />
+      <ScenarioExplorer
+        role={roleKey}
+        initialSelection={{
+          teamSize: query.teamSize,
+          timeline: query.timeline,
+          priority: query.priority,
+        }}
+      />
 
       <section className="card split-note">
         <div>
@@ -60,6 +75,12 @@ export default async function ScenarioPage({ params }: PageProps) {
           <p className="muted readable">비교 화면에서 러닝커브, 운영복잡도, 비용 부담을 한 번에 보세요.</p>
         </div>
         <Link href="/compare" className="button button-primary">
+          <span className="button-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="5" y="6" width="5" height="12" rx="1.2" />
+              <rect x="14" y="6" width="5" height="12" rx="1.2" />
+            </svg>
+          </span>
           추천안 비교하기
         </Link>
       </section>

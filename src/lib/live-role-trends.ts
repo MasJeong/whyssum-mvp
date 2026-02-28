@@ -1,11 +1,13 @@
 import { trendData, type RoleKey, type TrendMetric } from "@/lib/mvp-data";
 
+/** 직무별 기술-리포지토리 매핑 항목 */
 type CatalogItem = {
   tool: string;
   repo: string;
   difficulty: TrendMetric["difficulty"];
 };
 
+/** 외부 API에서 가져온 리포지토리 스냅샷 지표 */
 type RepoSnapshot = {
   stars: number;
   commits30d: number;
@@ -15,6 +17,7 @@ type RepoSnapshot = {
   sourceHealth: number;
 };
 
+/** getRoleTrendMetrics 반환값 (지표 목록·데이터 소스·캐시 시각) */
 type RoleTrendResult = {
   metrics: TrendMetric[];
   mode: "live" | "fallback";

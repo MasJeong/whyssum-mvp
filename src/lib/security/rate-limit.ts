@@ -1,13 +1,16 @@
+/** 요청 횟수와 윈도우 리셋 시각을 담는 버킷 */
 type Bucket = {
   count: number;
   resetAt: number;
 };
 
+/** 체크 시 사용할 제한 횟수·윈도우(ms) */
 type RateLimitOptions = {
   limit: number;
   windowMs: number;
 };
 
+/** checkRateLimit 반환값 (허용 여부·잔여 횟수·리셋 시각) */
 type RateLimitResult = {
   allowed: boolean;
   remaining: number;

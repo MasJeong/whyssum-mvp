@@ -1,3 +1,4 @@
+/** 진행 막대 컴포넌트 props (0~100 진행률) */
 type ProgressBarProps = {
   value: number;
 };

@@ -198,3 +198,32 @@
   - 페이지/컴포넌트/API/유틸의 named function 누락 항목 보강
 - `review_docs/requirements.md`, `review_docs/cautions.md`
   - 주석 정책(함수 JSDoc 필수)과 검증 포인트 반영
+
+## 추가 반영 (상용화 UX 리서치 기반 개선)
+
+- `src/app/globals.css`
+  - 블루/민트 기반 브랜드 토큰 재정의 및 상호작용 상태(버튼/카드/탭) 대비 강화
+  - 모바일 하단 탭에 아이콘/타이포 계층 반영, 시각 스캔 속도 개선
+- `src/app/page.tsx`, `src/app/roles/page.tsx`
+  - 첫 화면 가치 제안/CTA 문구를 의사결정 중심으로 재작성
+  - 역할 페이지 헤더 카피를 중복 제거하고 실사용 흐름 안내로 교체
+- `src/components/mobile-sticky-cta.tsx`
+  - 모바일 CTA가 현재 문맥(role) 기준으로 진입 경로를 선택하도록 개선
+- `src/app/scenarios/[role]/page.tsx`, `src/components/scenario-explorer.tsx`
+  - "자주 찾는 상황" 칩을 실제 프리셋 링크로 전환
+  - URL 쿼리(teamSize/timeline/priority) 기반 초기 필터 복원 지원
+- `src/app/trends/[role]/page.tsx`, `src/components/compare-interactive.tsx`, `src/components/mobile-bottom-nav.tsx`
+  - 개발자용 용어(LIVE/FALLBACK) 사용자 친화 문구로 정리
+  - 비교 선택 수량(현재 n/4) 노출로 제약 인지성 강화
+
+## 추가 반영 (색감/아이콘 체계 2차 정돈)
+
+- `src/app/globals.css`
+  - 토스식 신뢰 톤에 맞춰 primary 버튼/모바일 CTA 그라디언트를 블루 중심으로 단순화
+  - 신뢰도 배지 색상 토큰(`--trust-yellow`, `--trust-red`) 추가 및 일관 적용
+  - 버튼/내비 공통 아이콘 슬롯(`.button-icon`)과 compact 버튼 유틸(`.button-compact`) 추가
+- `src/components/nav-links.tsx`, `src/components/mobile-bottom-nav.tsx`
+  - 텍스트 중심 내비를 의미 기반 SVG 아이콘+라벨 구조로 전환
+- `src/app/page.tsx`, `src/app/roles/page.tsx`, `src/app/scenarios/[role]/page.tsx`, `src/app/trends/[role]/page.tsx`, `src/components/briefing-board.tsx`, `src/components/scenario-explorer.tsx`
+  - 주요 CTA에 의미 기반 아이콘을 추가해 스캔 속도/행동 예측성 강화
+  - 브리핑/시나리오의 인라인 스타일을 공통 유틸 클래스로 치환해 유지보수성 개선

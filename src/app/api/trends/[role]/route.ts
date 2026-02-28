@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getRoleTrendMetrics } from "@/lib/live-role-trends";
 import { type RoleKey } from "@/lib/mvp-data";
 
+/** GET 핸들러 두 번째 인자 (동적 라우트 params) */
 type Params = {
   params: Promise<{ role: string }>;
 };

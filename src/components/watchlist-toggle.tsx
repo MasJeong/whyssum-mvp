@@ -80,6 +80,7 @@ function getWatchlistServerSnapshot() {
   return [] as string[];
 }
 
+/** 관심리스트 토글 버튼 props */
 type WatchlistToggleProps = {
   itemKey: string;
   label: string;

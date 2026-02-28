@@ -6,6 +6,7 @@ import WatchlistToggle from "@/components/watchlist-toggle";
 import { roles, trendData, type RoleKey } from "@/lib/mvp-data";
 import type { TrendMetric } from "@/lib/mvp-data";
 
+/** 비교 테이블 한 행에 표시할 도구 지표 */
 type CompareItem = {
   name: string;
   adoption: number;
@@ -183,6 +184,7 @@ export default function CompareInteractive() {
           ))}
         </div>
         <h2>비교할 기술 선택 (최대 4개)</h2>
+        <p className="inline-note mt-xs">현재 {selectedItems.length}/4개 선택됨</p>
         <div className="checkbox-grid">
           {compareItems.map((item) => {
             const checked = selected.has(item.name);

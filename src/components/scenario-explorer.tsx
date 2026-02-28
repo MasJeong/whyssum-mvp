@@ -4,18 +4,27 @@ import { useEffect, useMemo, useState } from "react";
 import ProgressBar from "@/components/progress-bar";
 import { recommendations as fallbackRecommendations, scenarios, type Recommendation, type RoleKey } from "@/lib/mvp-data";
 
+/** 상황추천 탐색기 컴포넌트에 전달하는 props */
 type ScenarioExplorerProps = {
   role: RoleKey;
+  initialSelection?: {
+    teamSize?: string;
+    timeline?: string;
+    priority?: string;
+  };
 };
 
+/** /api/recommendations 응답 JSON 형태 */
 type ApiResponse = {
   role: RoleKey;
   recommendations: (Recommendation & RecommendationInsight & { reasons?: string[] })[];
   appliedRules?: string[];
 };
 
+/** 추천 신뢰도 구간 (높음/보통/낮음) */
 type RecommendationTrustLevel = "High" | "Medium" | "Low";
 
+/** API가 부가한 신뢰도·트렌드·트레이드오프 등 인사이트 필드 */
 type RecommendationInsight = {
   confidenceScore?: number;
   trustLevel?: RecommendationTrustLevel;
@@ -31,8 +40,10 @@ type RecommendationInsight = {
   };
 };
 
+/** 추천 1건 = 기본 추천 + 인사이트 + 선택적 근거 목록 */
 type RecommendationItem = Recommendation & RecommendationInsight & { reasons?: string[] };
 
+/** 저장된 상황 선택 스냅샷 (로컬 스토리지용) */
 type ScenarioSnapshot = {
   id: string;
   role: RoleKey;
@@ -42,6 +53,7 @@ type ScenarioSnapshot = {
   updatedAt: number;
 };
 
+/** 마지막 선택한 팀규모·일정·우선순위 (재방문 시 복원용) */
 type LastScenarioSelection = {
   teamSize: string;
   timeline: string;
@@ -171,9 +183,10 @@ const presetByRole: Record<RoleKey, { label: string; teamSize: string; timeline:
 /**
  * 상황추천 화면에서 조건 기반 재계산/저장/상세 해설을 제공한다.
  * @param role 현재 직무 키
+ * @param initialSelection URL 파라미터 기반 초기 필터 값
  * @returns 상황추천 인터랙션 UI
  */
-export default function ScenarioExplorer({ role }: ScenarioExplorerProps) {
+export default function ScenarioExplorer({ role, initialSelection }: ScenarioExplorerProps) {
   const roleScenarios = useMemo(() => scenarios.filter((item) => item.role === role), [role]);
 
   const teamOptions = useMemo(
@@ -206,12 +219,28 @@ export default function ScenarioExplorer({ role }: ScenarioExplorerProps) {
     // 옵션에 없는 값이면 안전하게 첫 옵션으로 폴백한다.
     const lastSelection = readLastScenarioSelection(role);
 
+    const requestedTeam = initialSelection?.teamSize;
+    const requestedTimeline = initialSelection?.timeline;
+    const requestedPriority = initialSelection?.priority;
+
     const nextTeam =
-      lastSelection && teamOptions.includes(lastSelection.teamSize) ? lastSelection.teamSize : (teamOptions[0] ?? "");
+      requestedTeam && teamOptions.includes(requestedTeam)
+        ? requestedTeam
+        : lastSelection && teamOptions.includes(lastSelection.teamSize)
+          ? lastSelection.teamSize
+          : (teamOptions[0] ?? "");
     const nextTimeline =
-      lastSelection && timelineOptions.includes(lastSelection.timeline) ? lastSelection.timeline : (timelineOptions[0] ?? "");
+      requestedTimeline && timelineOptions.includes(requestedTimeline)
+        ? requestedTimeline
+        : lastSelection && timelineOptions.includes(lastSelection.timeline)
+          ? lastSelection.timeline
+          : (timelineOptions[0] ?? "");
     const nextPriority =
-      lastSelection && priorityOptions.includes(lastSelection.priority) ? lastSelection.priority : (priorityOptions[0] ?? "");
+      requestedPriority && priorityOptions.includes(requestedPriority)
+        ? requestedPriority
+        : lastSelection && priorityOptions.includes(lastSelection.priority)
+          ? lastSelection.priority
+          : (priorityOptions[0] ?? "");
 
     setTeamSize(nextTeam);
     setTimeline(nextTimeline);
@@ -222,7 +251,7 @@ export default function ScenarioExplorer({ role }: ScenarioExplorerProps) {
     setSaveMessage(null);
     setExpandedCards({});
     setSavedSnapshots(readSnapshotsByRole(role));
-  }, [priorityOptions, role, teamOptions, timelineOptions]);
+  }, [initialSelection?.priority, initialSelection?.teamSize, initialSelection?.timeline, priorityOptions, role, teamOptions, timelineOptions]);
 
   useEffect(() => {
     if (!teamSize || !timeline || !priority) {
@@ -579,9 +608,20 @@ export default function ScenarioExplorer({ role }: ScenarioExplorerProps) {
         </div>
         <div className="button-row">
           <button type="button" className="button button-primary" onClick={searchRecommendations} disabled={loading}>
+            <span className="button-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M20 12a8 8 0 1 1-2.3-5.7" />
+                <path d="M20 5v5h-5" />
+              </svg>
+            </span>
             {loading ? "추천 계산 중..." : "추천 다시 계산"}
           </button>
           <button type="button" className="button button-ghost" onClick={saveCurrentSnapshot}>
+            <span className="button-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M7 5.5h10v13l-5-2.7-5 2.7v-13z" />
+              </svg>
+            </span>
             현재 조건 저장
           </button>
           <span className="inline-note">API rate limit: 분당 30회</span>
@@ -605,6 +645,14 @@ export default function ScenarioExplorer({ role }: ScenarioExplorerProps) {
                 저장한 조건 {savedSnapshots.length}개
               </p>
               <button type="button" className="button button-ghost" onClick={clearRoleSnapshots}>
+                <span className="button-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M4 7h16" />
+                    <path d="M9.5 7v10" />
+                    <path d="M14.5 7v10" />
+                    <path d="M6.5 7l1 12h9l1-12" />
+                  </svg>
+                </span>
                 모두 삭제
               </button>
             </div>
@@ -621,9 +669,8 @@ export default function ScenarioExplorer({ role }: ScenarioExplorerProps) {
                   </button>
                   <button
                     type="button"
-                    className="button button-ghost"
+                    className="button button-ghost button-compact"
                     onClick={() => removeSnapshot(snapshot.id)}
-                    style={{ padding: "0.18rem 0.5rem", minHeight: "34px" }}
                     aria-label="저장 조건 삭제"
                   >
                     삭제

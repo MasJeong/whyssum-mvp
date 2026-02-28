@@ -28,14 +28,17 @@ function clampScore(value: number) {
   return Math.max(0, Math.min(100, Math.round(value)));
 }
 
+/** 신뢰도 점수 구간 (80+ High, 60+ Medium, 그 외 Low) */
 type TrustLevel = "High" | "Medium" | "Low";
 
+/** 속도·안정성·확장성 축별 점수 (0~100) */
 type TradeoffAxis = {
   speed: number;
   stability: number;
   scalability: number;
 };
 
+/** 직무별 트렌드에서 추출한 속도·안정성·확장성 신호 */
 type RoleTrendSignals = {
   speed: number;
   stability: number;
@@ -205,6 +208,7 @@ function buildWhyNow(
   return `${base} 현재 선택 조건(${filterContext.join(" · ")})과도 일치합니다.`;
 }
 
+/** 점수·신뢰도·트레이드오프 등이 부가된 최종 추천 1건 */
 type ScoredRecommendation = (typeof recommendations)[RoleKey][number] & {
   reasons: string[];
   confidenceScore: number;

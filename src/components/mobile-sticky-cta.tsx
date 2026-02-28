@@ -14,8 +14,14 @@ export default function MobileStickyCta() {
     return null;
   }
 
+  const roleFromPath = pathname.startsWith("/trends/designer") || pathname.startsWith("/scenarios/designer")
+    ? "designer"
+    : pathname.startsWith("/trends/pm") || pathname.startsWith("/scenarios/pm")
+      ? "pm"
+      : "backend";
+
   return (
-    <Link href="/scenarios/backend" className="mobile-sticky-cta">
+    <Link href={`/scenarios/${roleFromPath}`} className="mobile-sticky-cta">
       상황추천 시작하기
     </Link>
   );
