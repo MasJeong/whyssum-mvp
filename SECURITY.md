@@ -14,6 +14,9 @@
   - Strict-Transport-Security (HTTPS only)
 - Server-side request validation using `zod`
 - Basic IP-based rate limiting for API routes
+- Search indexing controls
+  - `robots` rules disallow crawling `/api/*` and `/watchlist`
+  - `X-Robots-Tag: noindex, nofollow, noarchive` on API responses and `/watchlist`
 - Explicit 400/429/500 error responses without stack traces
 
 ## Current Limitations
@@ -21,6 +24,7 @@
 - In-memory rate limiting resets on process restart and does not coordinate across instances
 - No authentication/authorization yet (MVP scope)
 - No WAF/bot management rules yet
+- `robots` and `X-Robots-Tag` reduce accidental indexing, but are not bot mitigation/security controls by themselves
 
 ## Production Hardening Checklist
 

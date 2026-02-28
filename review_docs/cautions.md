@@ -31,6 +31,7 @@
 - GitHub 공개 API는 무인증 호출 시 rate limit이 낮아 트래픽 증가 시 fallback 빈도가 올라갈 수 있음
 - 일부 repo가 일시 실패해도 전체 fallback으로 내려가지 않도록 부분 fallback이 적용되어 있습니다.
 - npm/PyPI 보조 소스 호출 실패 시 해당 소스만 제외하고 계산합니다.
+- 검색엔진 인덱싱 제어가 적용되어 `/api/*`, `/watchlist`는 기본 크롤링 대상에서 제외됩니다.
 
 ## QA 권장 시나리오
 
@@ -54,3 +55,5 @@
 18. `/watchlist`에서 추가/삭제/전체삭제 및 새로고침 후 유지 확인
 19. `/trends/[role]?topN=5|8|12`에서 Top N 반영 확인
 20. `/briefings`에서 role/impact/period 필터 조합별 결과 개수 확인
+21. `/robots.txt`에 `/api/`, `/watchlist` disallow 규칙이 노출되는지 확인
+22. `/api/recommendations`와 `/watchlist` 응답에 `X-Robots-Tag` 헤더가 포함되는지 확인
