@@ -20,6 +20,10 @@ type RecommendationInsight = {
   confidenceScore?: number;
   trustLevel?: RecommendationTrustLevel;
   whyNow?: string;
+  baseFitScore?: number;
+  scoreDelta?: number;
+  trendSignal?: number;
+  reasonCount?: number;
   tradeoff?: {
     speed: number;
     stability: number;
@@ -159,6 +163,7 @@ export default function ScenarioExplorer({ role }: ScenarioExplorerProps) {
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
   const [appliedRules, setAppliedRules] = useState<string[]>([]);
   const [savedSnapshots, setSavedSnapshots] = useState<ScenarioSnapshot[]>([]);
+  const [expandedCards, setExpandedCards] = useState<Record<string, boolean>>({});
   const [items, setItems] = useState<RecommendationItem[]>(fallbackRecommendations[role]);
 
   useEffect(() => {
@@ -178,6 +183,7 @@ export default function ScenarioExplorer({ role }: ScenarioExplorerProps) {
     setAppliedRules([]);
     setError(null);
     setSaveMessage(null);
+    setExpandedCards({});
     setSavedSnapshots(readSnapshotsByRole(role));
   }, [priorityOptions, role, teamOptions, timelineOptions]);
 
@@ -327,6 +333,91 @@ export default function ScenarioExplorer({ role }: ScenarioExplorerProps) {
     setSaveMessage("이 직무의 저장 조건을 모두 삭제했습니다.");
   };
 
+  const toggleCardDetail = (cardKey: string) => {
+    setExpandedCards((prev) => ({
+      ...prev,
+      [cardKey]: !prev[cardKey],
+    }));
+  };
+
+  const getFitCategory = (score: number) => {
+    if (score >= 85) return "강력 추천";
+    if (score >= 70) return "추천";
+    return "조건부 추천";
+  };
+
+  const getRiskLevel = (riskCount: number) => {
+    if (riskCount >= 3) return "높음";
+    if (riskCount >= 2) return "보통";
+    return "낮음";
+  };
+
+  const getDominantAxis = (tradeoff: { speed: number; stability: number; scalability: number }) => {
+    if (tradeoff.speed >= tradeoff.stability && tradeoff.speed >= tradeoff.scalability) {
+      return { label: "속도 중심", value: tradeoff.speed };
+    }
+
+    if (tradeoff.stability >= tradeoff.speed && tradeoff.stability >= tradeoff.scalability) {
+      return { label: "안정성 중심", value: tradeoff.stability };
+    }
+
+    return { label: "확장성 중심", value: tradeoff.scalability };
+  };
+
+  const buildDynamicChecklist = (input: {
+    scoreDelta: number;
+    dominantAxis: { label: string; value: number };
+    confidenceScore: number;
+    tradeoff: { speed: number; stability: number; scalability: number };
+    riskCount: number;
+    reasonCount: number;
+    appliedRuleCount: number;
+  }) => {
+    const items: string[] = [];
+
+    items.push(`현재 추천은 ${input.dominantAxis.label} 축이 ${input.dominantAxis.value}점으로 가장 강합니다.`);
+
+    if (input.scoreDelta >= 8) {
+      items.push(`선택한 조건 영향으로 기본 점수 대비 +${input.scoreDelta}점 상승했습니다.`);
+    } else if (input.scoreDelta <= -5) {
+      items.push(`선택한 조건 영향으로 기본 점수 대비 ${input.scoreDelta}점 하락해 대안 비교가 필요합니다.`);
+    } else {
+      items.push(`조건 영향은 ${input.scoreDelta >= 0 ? `+${input.scoreDelta}` : input.scoreDelta}점으로 기준 추천과 유사합니다.`);
+    }
+
+    if (input.confidenceScore >= 80) {
+      items.push("신뢰도 높음 구간이므로 초기 도입 범위를 빠르게 확정해도 됩니다.");
+    } else if (input.confidenceScore >= 60) {
+      items.push("신뢰도 중간 구간이라 핵심 지표를 정하고 1차 검증 후 확장하는 편이 안전합니다.");
+    } else {
+      items.push("신뢰도 낮음 구간이라 우선순위나 일정 조건을 조정해 재계산하는 것을 권장합니다.");
+    }
+
+    if (input.riskCount >= 3) {
+      items.push("리스크 항목이 많아 2주 단위 리스크 점검 루틴을 포함해 실행하세요.");
+    } else if (input.riskCount === 0) {
+      items.push("리스크가 낮은 편이라 빠른 실험-피드백 루프로 학습 속도를 높일 수 있습니다.");
+    }
+
+    if (input.tradeoff.scalability < 60) {
+      items.push("확장성 점수가 낮으므로 사용자 증가 시점을 가정한 확장 계획을 미리 분리하세요.");
+    }
+
+    if (input.tradeoff.stability < 60) {
+      items.push("안정성 점수가 낮아 모니터링/롤백 기준을 먼저 정의하는 것이 좋습니다.");
+    }
+
+    if (input.appliedRuleCount > 0) {
+      items.push(`현재 계산에는 ${input.appliedRuleCount}개의 조건 규칙이 반영되었습니다.`);
+    }
+
+    if (input.reasonCount > 0) {
+      items.push(`추천 근거 ${input.reasonCount}개를 우선순위 문서에 그대로 옮기면 팀 합의가 빨라집니다.`);
+    }
+
+    return items.slice(0, 6);
+  };
+
   return (
     <>
       <section className="card">
@@ -444,10 +535,28 @@ export default function ScenarioExplorer({ role }: ScenarioExplorerProps) {
             <p className="eyebrow">{index + 1}순위 · {pick.label}</p>
             <h2>{pick.stack}</h2>
             {(() => {
+              const cardKey = `${pick.label}-${index}`;
+              const isExpanded = expandedCards[cardKey] ?? false;
               const confidenceScore = pick.confidenceScore ?? getFallbackConfidence(pick);
               const trustLevel = pick.trustLevel ?? getFallbackTrustLevel(confidenceScore);
               const tradeoff = pick.tradeoff ?? getFallbackTradeoff(pick.label);
               const whyNow = pick.whyNow ?? getFallbackWhyNow(pick.label);
+              const fitCategory = getFitCategory(pick.fitScore);
+              const riskLevel = getRiskLevel(pick.risks.length);
+              const dominantAxis = getDominantAxis(tradeoff);
+              const baseFitScore = pick.baseFitScore ?? pick.fitScore;
+              const scoreDelta = pick.scoreDelta ?? pick.fitScore - baseFitScore;
+              const trendSignal = pick.trendSignal ?? confidenceScore;
+              const reasonCount = pick.reasonCount ?? pick.reasons?.length ?? 0;
+              const checklist = buildDynamicChecklist({
+                scoreDelta,
+                dominantAxis,
+                confidenceScore,
+                tradeoff,
+                riskCount: pick.risks.length,
+                reasonCount,
+                appliedRuleCount: appliedRules.length,
+              });
 
               return (
                 <>
@@ -456,6 +565,7 @@ export default function ScenarioExplorer({ role }: ScenarioExplorerProps) {
                     <span className={`trust-badge trust-${trustLevel.toLowerCase()}`}>
                       신뢰도 {trustLevel} ({confidenceScore})
                     </span>
+                    <span className="chip">판단 {fitCategory}</span>
                   </div>
                   <p className="inline-note" style={{ marginTop: "0.45rem" }}>
                     Why now: {whyNow}
@@ -481,31 +591,91 @@ export default function ScenarioExplorer({ role }: ScenarioExplorerProps) {
                       <ProgressBar value={tradeoff.scalability} />
                     </div>
                   </div>
+
+                  <div className="button-row" style={{ marginTop: "0.65rem" }}>
+                    <button
+                      type="button"
+                      className="button button-ghost"
+                      onClick={() => toggleCardDetail(cardKey)}
+                      aria-expanded={isExpanded}
+                      aria-controls={`recommendation-detail-${cardKey}`}
+                    >
+                      {isExpanded ? "간단히 보기" : "자세히 보기"}
+                    </button>
+                    <span className="inline-note">주력 포인트: {dominantAxis.label}</span>
+                  </div>
+
+                  {isExpanded ? (
+                    <div id={`recommendation-detail-${cardKey}`} style={{ marginTop: "0.75rem", display: "grid", gap: "0.6rem" }}>
+                      <div>
+                        <p className="list-title">상황 해설</p>
+                        <ul>
+                          <li>현재 조건: {teamSize || "-"} · {timeline || "-"} · {priority || "-"}</li>
+                          <li>점수 구조: 기본 {baseFitScore}점 → 조건 반영 {pick.fitScore}점 ({scoreDelta >= 0 ? `+${scoreDelta}` : scoreDelta})</li>
+                          <li>트렌드 신호 반영 점수: {trendSignal}</li>
+                          <li>이 추천은 {dominantAxis.label} 의사결정에서 우선순위가 높게 계산되었습니다.</li>
+                          <li>신뢰도 {trustLevel} / 리스크 {riskLevel} 상태입니다.</li>
+                        </ul>
+                      </div>
+
+                      <div>
+                        <p className="list-title">실행 체크리스트 (바로 적용)</p>
+                        <ul>
+                          {checklist.map((item) => (
+                            <li key={`${pick.label}-${item}`}>{item}</li>
+                          ))}
+                        </ul>
+                      </div>
+
+                      {appliedRules.length > 0 ? (
+                        <div>
+                          <p className="list-title">이번 계산에 반영된 조건</p>
+                          <div className="chip-row" style={{ marginTop: "0.2rem" }}>
+                            {appliedRules.map((rule) => (
+                              <span key={`${pick.label}-${rule}`} className="chip">
+                                {rule}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      ) : null}
+
+                      {pick.reasons && pick.reasons.length > 0 ? (
+                        <div>
+                          <p className="list-title">추천 근거</p>
+                          <ul>
+                            {pick.reasons.map((reason) => (
+                              <li key={`${pick.label}-${reason}`}>
+                                {reason}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      ) : null}
+
+                      <div className="grid grid-2" style={{ gap: "0.6rem" }}>
+                        <div>
+                          <p className="list-title">장점</p>
+                          <ul>
+                            {pick.pros.map((pro) => (
+                              <li key={`${pick.label}-pro-${pro}`}>{pro}</li>
+                            ))}
+                          </ul>
+                        </div>
+                        <div>
+                          <p className="list-title">주의할 리스크</p>
+                          <ul>
+                            {pick.risks.map((risk) => (
+                              <li key={`${pick.label}-risk-${risk}`}>{risk}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
+                  ) : null}
                 </>
               );
             })()}
-            {pick.reasons && pick.reasons.length > 0 ? (
-              <>
-                <p className="list-title">추천 근거</p>
-                <ul>
-                  {pick.reasons.map((reason) => (
-                    <li key={reason}>{reason}</li>
-                  ))}
-                </ul>
-              </>
-            ) : null}
-            <p className="list-title">장점</p>
-            <ul>
-              {pick.pros.map((pro) => (
-                <li key={pro}>{pro}</li>
-              ))}
-            </ul>
-            <p className="list-title">리스크</p>
-            <ul>
-              {pick.risks.map((risk) => (
-                <li key={risk}>{risk}</li>
-              ))}
-            </ul>
           </article>
         ))}
       </section>

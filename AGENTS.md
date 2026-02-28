@@ -96,6 +96,8 @@ npm run build
 - Keep JSX readable; split large sections into smaller components.
 - Prefer existing classes/tokens from `globals.css` before new styles.
 - Keep inline styles minimal and intentional.
+- For detail/expanded UI, prioritize usability: summary first, details on demand, and avoid dense information walls.
+- When adding explanatory content, optimize for fast scanning (clear headings, short bullets, low cognitive load).
 
 ### React / Next.js conventions
 - Default to Server Components in `src/app/`.

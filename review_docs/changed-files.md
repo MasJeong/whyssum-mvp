@@ -138,3 +138,24 @@
   - 로컬 저장소 기반 스냅샷 최대 8개 제한 및 중복 저장 갱신 로직 추가
 - `README.md`, `review_docs/requirements.md`, `review_docs/cautions.md`
   - 재방문 가치(저장/복원)와 QA 확인 포인트 문서 동기화
+
+## 추가 반영 (상황추천 자세히 보기 고도화)
+
+- `src/components/scenario-explorer.tsx`
+  - 카드별 "자세히 보기/간단히 보기" 토글 추가
+  - 상세 패널에 조건 정합성 해설/실행 체크리스트/반영 규칙 칩 UI 추가
+  - 적합도/신뢰도 외 판단 카테고리/리스크 수준/주력 포인트 요약 추가
+- `README.md`, `review_docs/requirements.md`, `review_docs/cautions.md`
+  - 상세 해설 기능과 QA 포인트 문서 동기화
+
+## 추가 반영 (상황맞춤 상세 UX 재정렬)
+
+- `src/app/api/recommendations/route.ts`
+  - 사용자 화면에 불필요한 MCP 추천 응답 계산/필드 제거
+  - 상황추천 핵심 explainability 필드(`baseFitScore`, `scoreDelta`, `trendSignal`, `reasonCount`) 유지
+- `src/components/scenario-explorer.tsx`
+  - 상세 뷰에서 MCP 노출 제거
+  - 기본 카드 정보 밀도 축소(핵심 요약 중심) + 세부 정보는 확장 시 노출
+  - 상세 패널 접근성 개선(`aria-expanded`, `aria-controls`) 및 읽기 순서 재구성
+- `README.md`, `review_docs/requirements.md`, `review_docs/cautions.md`
+  - 사용자 중심 상세 UX 원칙과 QA 포인트로 문서 동기화

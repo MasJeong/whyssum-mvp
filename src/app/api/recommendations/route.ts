@@ -158,6 +158,10 @@ type ScoredRecommendation = (typeof recommendations)[RoleKey][number] & {
   trustLevel: TrustLevel;
   whyNow: string;
   tradeoff: TradeoffAxis;
+  baseFitScore: number;
+  scoreDelta: number;
+  trendSignal: number;
+  reasonCount: number;
 };
 
 function applyConditionScore(role: RoleKey, query: { teamSize?: string | null; timeline?: string | null; priority?: string | null }) {
@@ -169,6 +173,10 @@ function applyConditionScore(role: RoleKey, query: { teamSize?: string | null; t
     trustLevel: "Medium",
     whyNow: "",
     tradeoff: getBaseTradeoff(item.label),
+    baseFitScore: item.fitScore,
+    scoreDelta: 0,
+    trendSignal: 0,
+    reasonCount: 0,
   }));
   const adjustments: string[] = [];
 
@@ -269,6 +277,9 @@ function applyConditionScore(role: RoleKey, query: { teamSize?: string | null; t
     item.trustLevel = getTrustLevel(item.confidenceScore);
     item.whyNow = buildWhyNow(item.label, roleTrendSignals, query);
     item.tradeoff = applyTradeoffAdjustments(getBaseTradeoff(item.label), query, maxTeam);
+    item.scoreDelta = delta;
+    item.trendSignal = trendSignal;
+    item.reasonCount = item.reasons.length;
   }
 
   if (query.teamSize) adjustments.push(`팀 규모: ${query.teamSize}`);
