@@ -36,7 +36,7 @@ export default function Home() {
               상황추천 바로 체험
             </Link>
           </div>
-          <div className="chip-row" style={{ marginTop: "0.85rem" }}>
+          <div className="chip-row mt-md">
             {heroTags.map((tag) => (
               <span key={tag} className="chip">
                 {tag}
@@ -62,7 +62,7 @@ export default function Home() {
         <p className="eyebrow">빠른 진입</p>
         <h2>어떤 직무 관점에서 볼까?</h2>
         <p className="muted readable">직무별 핵심 의사결정 요소가 다르기 때문에 먼저 관점을 선택하면 탐색 속도가 빨라집니다.</p>
-        <div className="grid grid-3" style={{ marginTop: "0.75rem" }}>
+        <div className="grid grid-3 mt-md">
           {roles.map((role) => (
             <article key={role.key} className="card">
               <h3>{role.name}</h3>
@@ -92,7 +92,7 @@ export default function Home() {
           <p className="eyebrow">운영 신뢰 요소</p>
           <h2>데이터 투명성</h2>
           <p className="muted readable">지표는 출처/표본/업데이트 시점을 함께 표기하고, 추천 결과는 조건 변경 시 다시 계산합니다.</p>
-          <p className="muted" style={{ marginTop: "0.6rem" }}>
+          <p className="muted mt-sm">
             {sourceNote}
           </p>
         </article>

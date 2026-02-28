@@ -233,6 +233,38 @@ p {
   gap: 0.6rem;
 }
 
+.decision-banner {
+  border: 1px solid color-mix(in srgb, var(--brand) 38%, var(--line));
+  background: linear-gradient(135deg, #fff6ee 0%, #fff 84%);
+  border-radius: 14px;
+  padding: 0.88rem;
+}
+
+.decision-title {
+  font-size: 0.78rem;
+  color: var(--brand-deep);
+  font-weight: 760;
+  margin-bottom: 0.28rem;
+}
+
+.decision-main {
+  font-size: 1rem;
+  font-weight: 760;
+  color: #2f241d;
+}
+
+.summary-list {
+  margin-top: 0.45rem;
+  padding-left: 1rem;
+  display: grid;
+  gap: 0.16rem;
+}
+
+.summary-list li {
+  color: var(--text-primary);
+  margin-bottom: 0;
+}
+
 .button-row {
   display: flex;
   flex-wrap: wrap;
