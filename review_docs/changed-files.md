@@ -159,3 +159,10 @@
   - 상세 패널 접근성 개선(`aria-expanded`, `aria-controls`) 및 읽기 순서 재구성
 - `README.md`, `review_docs/requirements.md`, `review_docs/cautions.md`
   - 사용자 중심 상세 UX 원칙과 QA 포인트로 문서 동기화
+
+## 추가 반영 (보안/인덱싱 제어 및 주석 가이드)
+
+- `middleware.ts`, `src/app/robots.ts`, `SECURITY.md`
+  - `/api/*`, `/watchlist`에 대한 검색엔진 인덱싱 제어(`robots`, `X-Robots-Tag`) 추가
+- `AGENTS.md`, `src/app/api/recommendations/route.ts`, `src/components/scenario-explorer.tsx`
+  - 복잡 로직(스코어링/fallback/디바운스/저장 상한)에 대한 유지보수 주석 기준 반영 및 핵심 주석 추가

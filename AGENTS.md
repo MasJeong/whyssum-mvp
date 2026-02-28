@@ -7,6 +7,9 @@ Scope: whole repository.
 - Instruction precedence: user request > system/developer constraints > this file.
 - Verify behavior against real files/scripts before acting.
 - Keep changes focused, minimal, and consistent with existing patterns.
+- Language policy:
+  - Agent-facing docs/instructions (for coding agents) must be written in English.
+  - User-facing docs (README/review_docs and similar product docs) should be written in Korean.
 
 ## 2) Project Snapshot
 - App: `whyssum`
@@ -98,6 +101,12 @@ npm run build
 - Keep inline styles minimal and intentional.
 - For detail/expanded UI, prioritize usability: summary first, details on demand, and avoid dense information walls.
 - When adding explanatory content, optimize for fast scanning (clear headings, short bullets, low cognitive load).
+
+### Comments and readability
+- Add comments when logic is non-obvious (complex scoring, fallback chains, security constraints, caching/debounce behavior).
+- Prefer explaining `why` and constraints over repeating `what` the code already states.
+- Keep comments concise (1-2 lines near the relevant block) and update/remove them when logic changes.
+- For exported functions with non-trivial behavior, short JSDoc-style intent notes are allowed.
 
 ### React / Next.js conventions
 - Default to Server Components in `src/app/`.

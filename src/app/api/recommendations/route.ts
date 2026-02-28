@@ -7,6 +7,8 @@ import { parseRecommendationQuery } from "@/lib/security/validation";
 const RATE_LIMIT_WINDOW_MS = 60_000;
 const RATE_LIMIT_PER_WINDOW = 30;
 
+// 팀 규모 문자열("1~3명", "5~15명")에서 상한 인원 숫자를 추출해
+// 점수 조정 규칙(소규모/대규모 분기)에 사용한다.
 function extractMaxTeamSize(value?: string | null): number | null {
   if (!value) return null;
   const numbers = value.match(/\d+/g);
@@ -124,6 +126,10 @@ function applyTradeoffAdjustments(
   };
 }
 
+/**
+ * confidenceScore는 "현재 적합도" + "역할 트렌드 신호" + "조건 매칭 근거 개수"를 합성한 지표다.
+ * 사용자가 결과 신뢰도를 빠르게 판단하도록 단일 점수로 정규화한다.
+ */
 function computeConfidenceScore(fitScore: number, reasonCount: number, trendSignal: number): number {
   const ruleBonus = Math.min(reasonCount, 5) * 2;
   return clampScore(fitScore * 0.62 + trendSignal * 0.28 + ruleBonus);
@@ -187,6 +193,9 @@ function applyConditionScore(role: RoleKey, query: { teamSize?: string | null; t
   for (const item of roleRecommendations) {
     let delta = 0;
 
+    // 아래 규칙들은 "조건 기반 가중치 테이블" 역할을 한다.
+    // 같은 직무라도 우선순위/일정/팀규모에 따라 추천 타입(안정형/속도형/확장형)을
+    // 동적으로 올리거나 내리기 위해 누적 delta를 계산한다.
     if (priority.includes("빠른") || priority.includes("실험")) {
       if (item.label === "속도형") {
         delta += 14;
@@ -339,6 +348,8 @@ export async function GET(request: Request) {
 
     return setRateLimitHeaders(response, rate.remaining, rate.resetAt);
   } catch (error) {
+    // 의도적으로 상세 스택/내부 정보를 노출하지 않고,
+    // 400/500 범주의 안전한 메시지만 내려준다.
     if (error instanceof ZodError) {
       const badRequest = NextResponse.json(
         {

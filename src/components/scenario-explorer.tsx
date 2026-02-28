@@ -52,6 +52,8 @@ const SNAPSHOT_STORAGE_KEY = "whyssum:scenario-snapshots";
 const LAST_SELECTION_STORAGE_KEY = "whyssum:last-scenario-selection";
 const MAX_SNAPSHOTS_PER_ROLE = 8;
 
+// localStorage에서 읽은 값은 타입가드로 한 번 걸러
+// 잘못된 저장 데이터가 UI를 깨뜨리지 않게 방어한다.
 function readAllScenarioSnapshots(): ScenarioSnapshot[] {
   if (typeof window === "undefined") return [];
 
@@ -167,6 +169,8 @@ export default function ScenarioExplorer({ role }: ScenarioExplorerProps) {
   const [items, setItems] = useState<RecommendationItem[]>(fallbackRecommendations[role]);
 
   useEffect(() => {
+    // role 전환 시 해당 role의 마지막 선택값을 우선 복원하고,
+    // 옵션에 없는 값이면 안전하게 첫 옵션으로 fallback한다.
     const lastSelection = readLastScenarioSelection(role);
 
     const nextTeam =
@@ -242,6 +246,7 @@ export default function ScenarioExplorer({ role }: ScenarioExplorerProps) {
     }, 200);
 
     return () => clearTimeout(timer);
+    // 필터 변경마다 즉시 호출하지 않고 200ms 디바운스로 API 호출량을 줄인다.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [teamSize, timeline, priority, role]);
 
@@ -306,6 +311,7 @@ export default function ScenarioExplorer({ role }: ScenarioExplorerProps) {
       .sort((a, b) => b.updatedAt - a.updatedAt);
     const roleKeepIds = new Set(roleItems.slice(0, MAX_SNAPSHOTS_PER_ROLE).map((item) => item.id));
 
+    // 역할별 저장 개수 상한을 유지해 스냅샷이 무한히 쌓이지 않도록 제한한다.
     nextAll = nextAll.filter((item) => item.role !== role || roleKeepIds.has(item.id));
 
     writeAllScenarioSnapshots(nextAll);
