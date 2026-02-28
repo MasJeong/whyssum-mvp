@@ -167,6 +167,7 @@ export default function ScenarioExplorer({ role }: ScenarioExplorerProps) {
   const [savedSnapshots, setSavedSnapshots] = useState<ScenarioSnapshot[]>([]);
   const [expandedCards, setExpandedCards] = useState<Record<string, boolean>>({});
   const [items, setItems] = useState<RecommendationItem[]>(fallbackRecommendations[role]);
+  const topPick = items[0];
 
   useEffect(() => {
     // 역할 전환 시 해당 역할의 마지막 선택값을 우선 복원하고,
@@ -534,6 +535,20 @@ export default function ScenarioExplorer({ role }: ScenarioExplorerProps) {
           </div>
         ) : null}
       </section>
+
+      {topPick ? (
+        <section className="card decision-banner">
+          <p className="decision-title">지금 조건의 한 줄 결론</p>
+          <p className="decision-main">
+            1순위는 {topPick.label} ({topPick.stack})이며, 적합도 {topPick.fitScore}점입니다.
+          </p>
+          <ul className="summary-list">
+            <li>현재 선택 조건과 가장 잘 맞는 실행 전략으로 계산되었습니다.</li>
+            <li>자세히 보기를 열면 점수 구조와 실행 체크리스트를 바로 확인할 수 있습니다.</li>
+            <li>결정이 애매하면 비교 화면에서 후보 2~4개를 나란히 확인하세요.</li>
+          </ul>
+        </section>
+      ) : null}
 
       <section className="grid grid-3">
         {items.map((pick, index) => (

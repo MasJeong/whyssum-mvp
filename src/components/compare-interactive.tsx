@@ -110,6 +110,25 @@ export default function CompareInteractive() {
     [compareItems, selected],
   );
 
+  const bestCandidate = useMemo(() => {
+    if (selectedItems.length === 0) return null;
+
+    const scored = selectedItems.map((item) => {
+      const overall = Math.round(
+        item.adoption * 0.3 +
+          item.growth * 0.22 +
+          item.stability * 0.2 +
+          item.confidence * 0.18 -
+          item.cost * 0.1,
+      );
+
+      return { item, overall };
+    });
+
+    scored.sort((a, b) => b.overall - a.overall);
+    return scored[0] ?? null;
+  }, [selectedItems]);
+
   const toggleSelection = (name: string) => {
     setSelected((prev) => {
       const next = new Set(prev);
@@ -170,6 +189,19 @@ export default function CompareInteractive() {
         </p>
         {loadError ? <p className="error-text">{loadError} (샘플 데이터로 표시 중)</p> : null}
       </section>
+
+      {bestCandidate ? (
+        <section className="card decision-banner">
+          <p className="decision-title">비교 요약</p>
+          <p className="decision-main">
+            현재 선택에서 가장 균형적인 후보는 {bestCandidate.item.name} ({bestCandidate.overall}점)입니다.
+          </p>
+          <ul className="summary-list">
+            <li>채택률·성장률·안정성·신뢰도를 함께 보되 비용 부담은 감점 반영합니다.</li>
+            <li>실제 도입 전에는 러닝커브와 운영복잡도를 팀 역량과 함께 확인하세요.</li>
+          </ul>
+        </section>
+      ) : null}
 
       <section className="card">
         <h2>비교 결과</h2>
