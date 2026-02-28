@@ -88,16 +88,16 @@ const packageCatalog: Partial<Record<string, { npm?: string; pypi?: string; sign
 const snapshotCache = new Map<string, { value: RepoSnapshot; expiresAt: number }>();
 
 /**
- * Fetches JSON from external trend sources with a consistent header profile.
+ * 외부 트렌드 소스에서 JSON을 가져오는 공통 요청 함수다.
  *
- * Purpose:
- *   Use a single fetch entrypoint so error/fallback policy is predictable.
+ * 목적:
+ *   외부 호출 진입점을 하나로 통일해 에러/폴백 정책을 예측 가능하게 유지한다.
  *
- * Trade-offs:
- *   Fails fast on non-2xx responses and delegates resilience to caller-level fallback chains.
+ * 트레이드오프:
+ *   성공 코드가 아닌 응답은 즉시 실패시키고, 복원은 호출자 쪽 폴백 체인에서 처리한다.
  *
- * @param url Source endpoint URL
- * @returns Parsed JSON payload from the upstream source
+ * @param url 외부 엔드포인트 주소
+ * @returns 파싱된 JSON 데이터
  */
 async function fetchJson(url: string) {
   const response = await fetch(url, {
@@ -173,7 +173,7 @@ async function fetchRepoSnapshot(role: RoleKey, item: CatalogItem): Promise<Repo
   }
 
   try {
-    // 30일 활동량을 기준으로 stars(인기)와 commit/contributor(활동성)를 함께 본다.
+    // 30일 활동량을 기준으로 별점(인기)과 커밋/기여자(활동성)를 함께 본다.
     // 인기만 높은 저장소가 과대평가되지 않도록 활동 지표를 반드시 결합한다.
     const since = new Date(now - 30 * ONE_DAY_MS).toISOString();
     const repoMeta = await fetchJson(`https://api.github.com/repos/${item.repo}`);
@@ -210,7 +210,7 @@ async function fetchRepoSnapshot(role: RoleKey, item: CatalogItem): Promise<Repo
       }
     }
     if (typeof packageInfo?.signal === "number") {
-      // catalog signal은 보조 가중치로만 사용해 외부 소스 지표를 압도하지 않게 제한한다.
+      // 카탈로그 신호는 보조 가중치로만 사용해 외부 소스 지표를 압도하지 않게 제한한다.
       snapshot.sourceHealth += Math.round((packageInfo.signal - 50) * 0.12);
     }
 
@@ -219,8 +219,8 @@ async function fetchRepoSnapshot(role: RoleKey, item: CatalogItem): Promise<Repo
     snapshotCache.set(item.repo, { value: snapshot, expiresAt: now + CACHE_TTL_MS });
     return snapshot;
   } catch {
-    // 외부 소스 장애 시 완전 실패 대신 fallback snapshot으로 degrade한다.
-    // fallback TTL을 짧게(1/3) 잡아 복구 후 live 데이터로 빨리 복귀한다.
+    // 외부 소스 장애 시 완전 실패 대신 폴백 스냅샷으로 저하 처리한다.
+    // 폴백 만료 시간을 짧게(1/3) 잡아 복구 후 실시간 데이터로 빨리 복귀한다.
     const fallback = fallbackSnapshot(role, item.tool);
     const packageInfo = packageCatalog[item.tool];
     fallback.sourceHealth = typeof packageInfo?.signal === "number" ? clamp(35, 80, packageInfo.signal) : 45;
@@ -230,27 +230,27 @@ async function fetchRepoSnapshot(role: RoleKey, item: CatalogItem): Promise<Repo
 }
 
 /**
- * Converts raw repository snapshots into UI-facing trend metrics.
+ * 원시 저장소 스냅샷을 화면에서 사용하는 트렌드 지표로 변환한다.
  *
- * Purpose:
- *   Build comparable per-tool metrics for recommendation and trend cards.
+ * 목적:
+ *   추천/트렌드 카드에서 도구별 값을 일관되게 비교할 수 있게 만든다.
  *
- * Strategy:
- *   Compose popularity/activity/community signals, then normalize and clamp for stable UI ranges.
+ * 전략:
+ *   인기/활동/커뮤니티 신호를 합성한 뒤 정규화/클램프해 UI 범위를 안정화한다.
  *
- * Trade-offs:
- *   Weighted heuristics favor consistency over strict statistical modeling; coefficients are tuning knobs.
+ * 트레이드오프:
+ *   엄밀한 통계 모델 대신 가중 휴리스틱을 사용해 일관성을 우선하며, 계수는 튜닝 가능하다.
  *
- * @param catalog Role-specific tool catalog metadata
- * @param snapshots Latest external/fallback repository snapshots
- * @returns Normalized trend metrics list consumable by UI/API
+ * @param catalog 역할별 도구 카탈로그 메타데이터
+ * @param snapshots 최신 외부/폴백 저장소 스냅샷
+ * @returns 화면/응답에서 바로 사용할 수 있는 정규화된 지표 목록
  */
 function toTrendMetrics(catalog: CatalogItem[], snapshots: RepoSnapshot[]): TrendMetric[] {
   const npmScores = snapshots.map((snapshot) => Math.log10((snapshot.npmWeeklyDownloads ?? 1) + 1) * 55);
   const pypiScores = snapshots.map((snapshot) => Math.log10((snapshot.pypi30dDownloads ?? 1) + 1) * 38);
 
-  // popularityScore = stars(log) + commit activity + contributor breadth + package ecosystem signals
-  // coefficients are intentionally asymmetric to avoid one source dominating the ranking.
+  // 인기 점수 = 별점(로그) + 커밋 활동량 + 기여자 폭 + 패키지 생태계 신호
+  // 특정 소스 하나가 순위를 지배하지 않도록 계수는 의도적으로 비대칭으로 둔다.
   const popularityScores = snapshots.map((snapshot, index) => {
     const starWeight = Math.log10(snapshot.stars + 10) * 110;
     const activityWeight = snapshot.commits30d * 1.7;

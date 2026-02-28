@@ -30,7 +30,7 @@ function subscribeWatchlist(onStoreChange: () => void) {
     return () => {};
   }
 
-  // storage 이벤트는 다른 탭 변경을, custom 이벤트는 같은 탭 변경을 반영한다.
+  // 저장소 이벤트는 다른 탭 변경을, 사용자 이벤트는 같은 탭 변경을 반영한다.
   const handler = () => onStoreChange();
   window.addEventListener("storage", handler);
   window.addEventListener(WATCHLIST_CHANGED_EVENT, handler);
@@ -44,7 +44,7 @@ function getWatchlistSnapshot() {
   if (typeof window === "undefined") return [];
 
   const raw = window.localStorage.getItem(STORAGE_KEY);
-  // useSyncExternalStore는 stable snapshot이 중요하므로 raw string 기준 캐시를 사용한다.
+  // 외부 저장소 구독 훅은 안정 스냅샷이 중요하므로 원본 문자열 기준 캐시를 사용한다.
   if (raw === cachedWatchlistRaw) {
     return cachedWatchlist;
   }

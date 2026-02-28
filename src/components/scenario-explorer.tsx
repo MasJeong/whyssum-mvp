@@ -52,8 +52,8 @@ const SNAPSHOT_STORAGE_KEY = "whyssum:scenario-snapshots";
 const LAST_SELECTION_STORAGE_KEY = "whyssum:last-scenario-selection";
 const MAX_SNAPSHOTS_PER_ROLE = 8;
 
-// localStorage에서 읽은 값은 타입가드로 한 번 걸러
-// 잘못된 저장 데이터가 UI를 깨뜨리지 않게 방어한다.
+// 브라우저 저장소에서 읽은 값은 타입가드로 한 번 걸러
+// 잘못된 저장 데이터가 화면을 깨뜨리지 않게 방어한다.
 function readAllScenarioSnapshots(): ScenarioSnapshot[] {
   if (typeof window === "undefined") return [];
 
@@ -169,8 +169,8 @@ export default function ScenarioExplorer({ role }: ScenarioExplorerProps) {
   const [items, setItems] = useState<RecommendationItem[]>(fallbackRecommendations[role]);
 
   useEffect(() => {
-    // role 전환 시 해당 role의 마지막 선택값을 우선 복원하고,
-    // 옵션에 없는 값이면 안전하게 첫 옵션으로 fallback한다.
+    // 역할 전환 시 해당 역할의 마지막 선택값을 우선 복원하고,
+    // 옵션에 없는 값이면 안전하게 첫 옵션으로 폴백한다.
     const lastSelection = readLastScenarioSelection(role);
 
     const nextTeam =

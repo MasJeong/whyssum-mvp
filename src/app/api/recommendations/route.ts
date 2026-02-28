@@ -54,10 +54,10 @@ function computeRoleTrendSignals(role: RoleKey): RoleTrendSignals {
   const mediumOrHighRatio = metrics.filter((row) => row.difficulty !== "낮음").length / metrics.length;
   const topGrowthTool = [...metrics].sort((a, b) => b.growthRate - a.growthRate)[0]?.tool ?? "핵심 도구";
 
-  // axis composition summary:
-  // - speed: growth + low-difficulty leverage
-  // - stability: demand + low-difficulty maintainability
-  // - scalability: demand + complexity tolerance + growth
+  // 축 구성 요약:
+  // - 속도: 성장률 + 낮은 난이도 이점
+  // - 안정성: 수요 + 낮은 난이도 유지보수성
+  // - 확장성: 수요 + 복잡도 수용력 + 성장률
   return {
     speed: clampScore(20 + avgGrowth * 6 + lowDifficultyRatio * 35),
     stability: clampScore(avgDemand * 0.8 + lowDifficultyRatio * 15),
@@ -123,7 +123,7 @@ function applyTradeoffAdjustments(
     adjusted.speed -= 3;
   }
 
-  // Clamping keeps tradeoff meters stable for UI and avoids negative/overflow edge cases.
+  // 클램프 처리는 트레이드오프 지표를 안정적으로 유지하고 음수/초과 범위를 막는다.
   return {
     speed: clampScore(adjusted.speed),
     stability: clampScore(adjusted.stability),
@@ -132,11 +132,11 @@ function applyTradeoffAdjustments(
 }
 
 /**
- * confidenceScore는 "현재 적합도" + "역할 트렌드 신호" + "조건 매칭 근거 개수"를 합성한 지표다.
+ * 신뢰도 점수는 "현재 적합도" + "역할 트렌드 신호" + "조건 매칭 근거 개수"를 합성한 지표다.
  * 사용자가 결과 신뢰도를 빠르게 판단하도록 단일 점수로 정규화한다.
  *
  * @param fitScore 추천안의 조건 반영 적합도 (0~100)
- * @param reasonCount 추천 근거 개수 (rule match explainability)
+ * @param reasonCount 추천 근거 개수 (규칙 매칭 설명력)
  * @param trendSignal 역할별 트렌드 축 신호값 (0~100)
  * @returns 최종 신뢰도 점수 (0~100)
  */
@@ -205,7 +205,7 @@ function applyConditionScore(role: RoleKey, query: { teamSize?: string | null; t
 
     // 아래 규칙들은 "조건 기반 가중치 테이블" 역할을 한다.
     // 같은 직무라도 우선순위/일정/팀규모에 따라 추천 타입(안정형/속도형/확장형)을
-    // 동적으로 올리거나 내리기 위해 누적 delta를 계산한다.
+    // 조건에 따라 추천 강도를 올리거나 내리기 위해 누적 가중치 차이를 계산한다.
     if (priority.includes("빠른") || priority.includes("실험")) {
       if (item.label === "속도형") {
         delta += 14;
@@ -305,7 +305,7 @@ function applyConditionScore(role: RoleKey, query: { teamSize?: string | null; t
   if (query.timeline) adjustments.push(`일정: ${query.timeline}`);
   if (query.priority) adjustments.push(`우선순위: ${query.priority}`);
 
-  // 최종 출력은 사용자가 바로 비교할 수 있게 fitScore 내림차순으로 정렬한다.
+  // 최종 출력은 사용자가 바로 비교할 수 있게 적합도 점수 내림차순으로 정렬한다.
   roleRecommendations.sort((a, b) => b.fitScore - a.fitScore);
   return { roleRecommendations, adjustments };
 }
