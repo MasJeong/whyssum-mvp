@@ -87,6 +87,18 @@ const packageCatalog: Partial<Record<string, { npm?: string; pypi?: string; sign
 
 const snapshotCache = new Map<string, { value: RepoSnapshot; expiresAt: number }>();
 
+/**
+ * Fetches JSON from external trend sources with a consistent header profile.
+ *
+ * Purpose:
+ *   Use a single fetch entrypoint so error/fallback policy is predictable.
+ *
+ * Trade-offs:
+ *   Fails fast on non-2xx responses and delegates resilience to caller-level fallback chains.
+ *
+ * @param url Source endpoint URL
+ * @returns Parsed JSON payload from the upstream source
+ */
 async function fetchJson(url: string) {
   const response = await fetch(url, {
     headers: {
@@ -161,6 +173,8 @@ async function fetchRepoSnapshot(role: RoleKey, item: CatalogItem): Promise<Repo
   }
 
   try {
+    // 30일 활동량을 기준으로 stars(인기)와 commit/contributor(활동성)를 함께 본다.
+    // 인기만 높은 저장소가 과대평가되지 않도록 활동 지표를 반드시 결합한다.
     const since = new Date(now - 30 * ONE_DAY_MS).toISOString();
     const repoMeta = await fetchJson(`https://api.github.com/repos/${item.repo}`);
     const commits = await fetchJson(`https://api.github.com/repos/${item.repo}/commits?since=${encodeURIComponent(since)}&per_page=100`);
@@ -196,6 +210,7 @@ async function fetchRepoSnapshot(role: RoleKey, item: CatalogItem): Promise<Repo
       }
     }
     if (typeof packageInfo?.signal === "number") {
+      // catalog signal은 보조 가중치로만 사용해 외부 소스 지표를 압도하지 않게 제한한다.
       snapshot.sourceHealth += Math.round((packageInfo.signal - 50) * 0.12);
     }
 
@@ -204,6 +219,8 @@ async function fetchRepoSnapshot(role: RoleKey, item: CatalogItem): Promise<Repo
     snapshotCache.set(item.repo, { value: snapshot, expiresAt: now + CACHE_TTL_MS });
     return snapshot;
   } catch {
+    // 외부 소스 장애 시 완전 실패 대신 fallback snapshot으로 degrade한다.
+    // fallback TTL을 짧게(1/3) 잡아 복구 후 live 데이터로 빨리 복귀한다.
     const fallback = fallbackSnapshot(role, item.tool);
     const packageInfo = packageCatalog[item.tool];
     fallback.sourceHealth = typeof packageInfo?.signal === "number" ? clamp(35, 80, packageInfo.signal) : 45;
@@ -212,10 +229,28 @@ async function fetchRepoSnapshot(role: RoleKey, item: CatalogItem): Promise<Repo
   }
 }
 
+/**
+ * Converts raw repository snapshots into UI-facing trend metrics.
+ *
+ * Purpose:
+ *   Build comparable per-tool metrics for recommendation and trend cards.
+ *
+ * Strategy:
+ *   Compose popularity/activity/community signals, then normalize and clamp for stable UI ranges.
+ *
+ * Trade-offs:
+ *   Weighted heuristics favor consistency over strict statistical modeling; coefficients are tuning knobs.
+ *
+ * @param catalog Role-specific tool catalog metadata
+ * @param snapshots Latest external/fallback repository snapshots
+ * @returns Normalized trend metrics list consumable by UI/API
+ */
 function toTrendMetrics(catalog: CatalogItem[], snapshots: RepoSnapshot[]): TrendMetric[] {
   const npmScores = snapshots.map((snapshot) => Math.log10((snapshot.npmWeeklyDownloads ?? 1) + 1) * 55);
   const pypiScores = snapshots.map((snapshot) => Math.log10((snapshot.pypi30dDownloads ?? 1) + 1) * 38);
 
+  // popularityScore = stars(log) + commit activity + contributor breadth + package ecosystem signals
+  // coefficients are intentionally asymmetric to avoid one source dominating the ranking.
   const popularityScores = snapshots.map((snapshot, index) => {
     const starWeight = Math.log10(snapshot.stars + 10) * 110;
     const activityWeight = snapshot.commits30d * 1.7;
