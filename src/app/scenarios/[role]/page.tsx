@@ -22,7 +22,7 @@ export default async function ScenarioPage({ params }: PageProps) {
       <section className="card">
         <p className="eyebrow">상황추천</p>
         <h1>{roleInfo.name}</h1>
-        <p className="muted">같은 직무라도 팀 크기와 일정, 우선순위에 따라 추천안이 달라집니다.</p>
+        <p className="muted readable">같은 직무라도 팀 크기와 일정, 우선순위에 따라 추천안이 달라집니다.</p>
         <div className="role-switch" style={{ marginTop: "0.75rem" }}>
           {roles.map((item) => (
             <Link
@@ -52,7 +52,7 @@ export default async function ScenarioPage({ params }: PageProps) {
       <section className="card split-note">
         <div>
           <h2>선택이 애매하면?</h2>
-          <p className="muted">비교 화면에서 러닝커브, 운영복잡도, 비용 부담을 한 번에 보세요.</p>
+          <p className="muted readable">비교 화면에서 러닝커브, 운영복잡도, 비용 부담을 한 번에 보세요.</p>
         </div>
         <Link href="/compare" className="button button-primary">
           추천안 비교하기

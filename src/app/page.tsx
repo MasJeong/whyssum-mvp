@@ -25,7 +25,7 @@ export default function Home() {
         <article>
           <p className="eyebrow">의사결정 중심 탐색 플랫폼</p>
           <h1>요즘 뭐 쓰는지보다, 왜 쓰는지를 보여주는 곳</h1>
-          <p className="muted">
+          <p className="muted readable">
             직무별 트렌드 수치와 상황추천을 한 화면에서 연결해 도구 선택 근거를 빠르게 만들 수 있도록 구성했습니다.
           </p>
           <div className="button-row">
@@ -61,7 +61,7 @@ export default function Home() {
       <section className="card">
         <p className="eyebrow">빠른 진입</p>
         <h2>어떤 직무 관점에서 볼까?</h2>
-        <p className="muted">직무별 핵심 의사결정 요소가 다르기 때문에 먼저 관점을 선택하면 탐색 속도가 빨라집니다.</p>
+        <p className="muted readable">직무별 핵심 의사결정 요소가 다르기 때문에 먼저 관점을 선택하면 탐색 속도가 빨라집니다.</p>
         <div className="grid grid-3" style={{ marginTop: "0.75rem" }}>
           {roles.map((role) => (
             <article key={role.key} className="card">
@@ -91,7 +91,7 @@ export default function Home() {
         <article className="card">
           <p className="eyebrow">운영 신뢰 요소</p>
           <h2>데이터 투명성</h2>
-          <p className="muted">지표는 출처/표본/업데이트 시점을 함께 표기하고, 추천 결과는 조건 변경 시 다시 계산합니다.</p>
+          <p className="muted readable">지표는 출처/표본/업데이트 시점을 함께 표기하고, 추천 결과는 조건 변경 시 다시 계산합니다.</p>
           <p className="muted" style={{ marginTop: "0.6rem" }}>
             {sourceNote}
           </p>
@@ -99,7 +99,7 @@ export default function Home() {
         <article className="card">
           <p className="eyebrow">업데이트</p>
           <h2>월간 인사이트 구독</h2>
-          <p className="muted">핵심 변화만 모은 인사이트 페이지를 먼저 보고, 필요하면 트렌드/비교로 내려가세요.</p>
+          <p className="muted readable">핵심 변화만 모은 인사이트 페이지를 먼저 보고, 필요하면 트렌드/비교로 내려가세요.</p>
           <div className="button-row">
             <Link href="/insights" className="button button-primary">
               인사이트 보기

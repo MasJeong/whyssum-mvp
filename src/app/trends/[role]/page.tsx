@@ -45,12 +45,12 @@ export default async function TrendByRolePage({ params, searchParams }: PageProp
       <section className="card">
         <p className="eyebrow">직무별 트렌드</p>
         <h1>{roleInfo.name}</h1>
-        <p className="muted">{roleInfo.oneLiner}</p>
-        <div className="chip-row" style={{ marginTop: "0.45rem" }}>
+        <p className="muted readable">{roleInfo.oneLiner}</p>
+        <div className="chip-row mt-sm">
           <span className="chip">데이터 모드: {trendResult.mode === "live" ? "LIVE" : "FALLBACK"}</span>
           <span className="chip">소스: {trendResult.source}</span>
         </div>
-        <div className="role-switch" style={{ marginTop: "0.75rem" }}>
+        <div className="role-switch mt-md">
           {roles.map((item) => (
             <Link
               key={item.key}
@@ -61,7 +61,7 @@ export default async function TrendByRolePage({ params, searchParams }: PageProp
             </Link>
           ))}
         </div>
-        <div className="topn-switch" style={{ marginTop: "0.75rem" }}>
+        <div className="topn-switch mt-md">
           {[5, 8, 12].map((size) => (
             <Link
               key={size}
@@ -169,7 +169,7 @@ export default async function TrendByRolePage({ params, searchParams }: PageProp
       <section className="card split-note">
         <div>
           <p className="muted">{sourceNote}</p>
-          <p className="muted" style={{ marginTop: "0.25rem" }}>
+          <p className="muted mt-sm">
             최신 갱신: {new Date(trendResult.fetchedAt).toLocaleString("ko-KR")}
           </p>
         </div>
