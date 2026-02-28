@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useSyncExternalStore } from "react";
 
 const STORAGE_KEY = "whyssum:watchlist";
+const WATCHLIST_CHANGED_EVENT = "whyssum:watchlist-changed";
 
 function readWatchlist(): string[] {
   if (typeof window === "undefined") return [];
@@ -19,6 +20,29 @@ function readWatchlist(): string[] {
 function writeWatchlist(items: string[]) {
   if (typeof window === "undefined") return;
   window.localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+  window.dispatchEvent(new Event(WATCHLIST_CHANGED_EVENT));
+}
+
+function subscribeWatchlist(onStoreChange: () => void) {
+  if (typeof window === "undefined") {
+    return () => {};
+  }
+
+  const handler = () => onStoreChange();
+  window.addEventListener("storage", handler);
+  window.addEventListener(WATCHLIST_CHANGED_EVENT, handler);
+  return () => {
+    window.removeEventListener("storage", handler);
+    window.removeEventListener(WATCHLIST_CHANGED_EVENT, handler);
+  };
+}
+
+function getWatchlistSnapshot() {
+  return readWatchlist();
+}
+
+function getWatchlistServerSnapshot() {
+  return [] as string[];
 }
 
 type WatchlistToggleProps = {
@@ -27,20 +51,18 @@ type WatchlistToggleProps = {
 };
 
 export default function WatchlistToggle({ itemKey, label }: WatchlistToggleProps) {
-  const [saved, setSaved] = useState<boolean>(() => readWatchlist().includes(itemKey));
+  const watchlist = useSyncExternalStore(subscribeWatchlist, getWatchlistSnapshot, getWatchlistServerSnapshot);
+  const saved = watchlist.includes(itemKey);
 
   const toggle = () => {
-    const list = readWatchlist();
-    if (list.includes(itemKey)) {
-      const next = list.filter((item) => item !== itemKey);
+    if (watchlist.includes(itemKey)) {
+      const next = watchlist.filter((item) => item !== itemKey);
       writeWatchlist(next);
-      setSaved(false);
       return;
     }
 
-    const next = Array.from(new Set([...list, itemKey]));
+    const next = Array.from(new Set([...watchlist, itemKey]));
     writeWatchlist(next);
-    setSaved(true);
   };
 
   return (

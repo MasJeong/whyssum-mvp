@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useMemo, useSyncExternalStore } from "react";
 
 const STORAGE_KEY = "whyssum:watchlist";
+const WATCHLIST_CHANGED_EVENT = "whyssum:watchlist-changed";
 
 function readWatchlist(): string[] {
   if (typeof window === "undefined") return [];
@@ -20,10 +21,33 @@ function readWatchlist(): string[] {
 function writeWatchlist(items: string[]) {
   if (typeof window === "undefined") return;
   window.localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+  window.dispatchEvent(new Event(WATCHLIST_CHANGED_EVENT));
+}
+
+function subscribeWatchlist(onStoreChange: () => void) {
+  if (typeof window === "undefined") {
+    return () => {};
+  }
+
+  const handler = () => onStoreChange();
+  window.addEventListener("storage", handler);
+  window.addEventListener(WATCHLIST_CHANGED_EVENT, handler);
+  return () => {
+    window.removeEventListener("storage", handler);
+    window.removeEventListener(WATCHLIST_CHANGED_EVENT, handler);
+  };
+}
+
+function getWatchlistSnapshot() {
+  return readWatchlist();
+}
+
+function getWatchlistServerSnapshot() {
+  return [] as string[];
 }
 
 export default function WatchlistView() {
-  const [items, setItems] = useState<string[]>(() => readWatchlist());
+  const items = useSyncExternalStore(subscribeWatchlist, getWatchlistSnapshot, getWatchlistServerSnapshot);
 
   const parsedItems = useMemo(
     () =>
@@ -41,7 +65,6 @@ export default function WatchlistView() {
   const removeItem = (key: string) => {
     const next = items.filter((item) => item !== key);
     writeWatchlist(next);
-    setItems(next);
   };
 
   if (parsedItems.length === 0) {
@@ -74,7 +97,6 @@ export default function WatchlistView() {
             className="button button-ghost"
             onClick={() => {
               writeWatchlist([]);
-              setItems([]);
             }}
           >
             전체 삭제
