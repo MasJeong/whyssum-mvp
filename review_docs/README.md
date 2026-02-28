@@ -1,0 +1,19 @@
+# 작업 검토 문서
+
+이 폴더는 최근 작업 내용을 빠르게 검토할 수 있도록 정리한 문서 모음입니다.
+
+## 문서 구성
+
+- `changed-files.md`: 수정/추가된 파일과 변경 목적
+- `cautions.md`: 검토 시 확인해야 할 주의사항과 후속 작업
+- `requirements.md`: 웹사이트형 제품 요구사항과 구현 매핑
+- `backend-review-guide.md`: 백엔드 관점에서 전체 구현을 검토하는 가이드
+- `phase3-implementation-plan.md`: 고도화 기능 구현 계획서
+- `briefing-implementation-plan.md`: 트렌드 브리핑 기능 구현 계획서
+- `react-next-onboarding.md`: React/Next 구조와 추천 흐름 온보딩 가이드
+
+## 검토 순서 추천
+
+1. `changed-files.md`로 파일별 변경 의도 파악
+2. `cautions.md`로 리스크/보완 포인트 확인
+3. 실제 코드 파일 열어 세부 로직/스타일 검토
