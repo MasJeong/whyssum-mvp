@@ -179,3 +179,14 @@
   - 상세/저장 UI 간격 체계 정리 및 비교표 접근성 캡션 추가
 - `README.md`, `review_docs/requirements.md`, `review_docs/cautions.md`
   - UI/UX 현대화 1차 반영 내용 및 QA 체크포인트 동기화
+
+## 추가 반영 (UI/UX 현대화 2차 - clarity-first)
+
+- `src/components/scenario-explorer.tsx`
+  - 현재 조건 기반 1순위를 즉시 이해할 수 있는 "한 줄 결론" 배너 추가
+- `src/components/compare-interactive.tsx`
+  - 선택 항목에 대한 균형 점수 기반 "비교 요약" 배너 추가
+- `src/app/globals.css`, `src/app/page.tsx`, `src/app/scenarios/[role]/page.tsx`
+  - 배너/간격 유틸 클래스 추가 및 인라인 간격 스타일 일부 정리
+- `README.md`, `review_docs/requirements.md`, `review_docs/cautions.md`
+  - 2차 UX 개선 의도와 QA 항목 문서 동기화
