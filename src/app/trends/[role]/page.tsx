@@ -5,10 +5,56 @@ import WatchlistToggle from "@/components/watchlist-toggle";
 import { getRoleTrendMetrics } from "@/lib/live-role-trends";
 import { roles, sourceNote, type RoleKey } from "@/lib/mvp-data";
 
+type SortBy = "adoption" | "demand" | "growth" | "confidence";
+
+const sortOptions: Array<{ key: SortBy; label: string }> = [
+  { key: "adoption", label: "채택률" },
+  { key: "demand", label: "수요지수" },
+  { key: "growth", label: "성장률" },
+  { key: "confidence", label: "신뢰도" },
+];
+
+/**
+ * 트렌드 정렬 쿼리를 검증해 허용값만 통과시킨다.
+ * @param value URL query sortBy 값
+ * @returns 허용 정렬 키 또는 기본값(adoption)
+ */
+function parseSortBy(value?: string): SortBy {
+  if (value && sortOptions.some((option) => option.key === value)) {
+    return value as SortBy;
+  }
+  return "adoption";
+}
+
+/**
+ * 정렬 기준별 비교값을 계산한다.
+ * @param sortBy 정렬 기준
+ * @param left 왼쪽 행
+ * @param right 오른쪽 행
+ * @returns sort 비교값
+ */
+function compareMetric(
+  sortBy: SortBy,
+  left: Awaited<ReturnType<typeof getRoleTrendMetrics>>["metrics"][number],
+  right: Awaited<ReturnType<typeof getRoleTrendMetrics>>["metrics"][number],
+) {
+  switch (sortBy) {
+    case "demand":
+      return right.demandIndex - left.demandIndex;
+    case "growth":
+      return right.growthRate - left.growthRate;
+    case "confidence":
+      return (right.confidenceScore ?? 0) - (left.confidenceScore ?? 0);
+    case "adoption":
+    default:
+      return right.adoptionRate - left.adoptionRate;
+  }
+}
+
 /** 트렌드 페이지 컴포넌트 props (Next.js 15+ params/searchParams는 Promise) */
 type PageProps = {
   params: Promise<{ role: string }>;
-  searchParams: Promise<{ topN?: string }>;
+  searchParams: Promise<{ topN?: string; sortBy?: string }>;
 };
 
 /**
@@ -28,7 +74,14 @@ export default async function TrendByRolePage({ params, searchParams }: PageProp
   }
 
   const trendResult = await getRoleTrendMetrics(roleKey);
-  const sortedMetrics = [...trendResult.metrics].sort((a, b) => b.demandIndex - a.demandIndex);
+  const sortBy = parseSortBy(query.sortBy);
+  const sortedMetrics = [...trendResult.metrics].sort((left, right) => {
+    const compared = compareMetric(sortBy, left, right);
+    if (compared !== 0) {
+      return compared;
+    }
+    return left.tool.localeCompare(right.tool);
+  });
   const topNCandidate = Number(query.topN ?? 8);
   const topN = Number.isFinite(topNCandidate) && topNCandidate > 0 ? topNCandidate : 8;
   const metrics = sortedMetrics.slice(0, Math.min(topN, sortedMetrics.length));
@@ -72,10 +125,21 @@ export default async function TrendByRolePage({ params, searchParams }: PageProp
           {[5, 8, 12].map((size) => (
             <Link
               key={size}
-              href={`/trends/${roleKey}?topN=${size}`}
+              href={`/trends/${roleKey}?topN=${size}&sortBy=${sortBy}`}
               className={`role-pill ${topN === size ? "role-pill-active" : ""}`}
             >
               TOP {size}
+            </Link>
+          ))}
+        </div>
+        <div className="topn-switch mt-sm">
+          {sortOptions.map((option) => (
+            <Link
+              key={option.key}
+              href={`/trends/${roleKey}?topN=${topN}&sortBy=${option.key}`}
+              className={`role-pill ${sortBy === option.key ? "role-pill-active" : ""}`}
+            >
+              {option.label}
             </Link>
           ))}
         </div>
