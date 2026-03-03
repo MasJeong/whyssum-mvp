@@ -19,6 +19,9 @@
 - 트렌드 페이지 쿼리
   - `topN`: 5/8/12 표시 개수 선택
   - `sortBy`: `adoption | demand | growth | confidence` 정렬 기준 선택
+- 비교 페이지 모드
+  - 기본 모드: 최대 4개 선택
+  - 고급 모드: 최대 8개 선택
 - 추천 결과에 `reasons`, `confidenceScore`, `trustLevel`, `whyNow`, `tradeoff`, `appliedRules` 포함
 
 ## 구현에서 신경 쓴 점

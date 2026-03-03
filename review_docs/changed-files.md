@@ -256,6 +256,28 @@
 - `README.md`, `review_docs/README.md`, `review_docs/requirements.md`, `review_docs/cautions.md`
   - 스케줄 API 사용/주의사항/요구사항 문서 동기화
 
+## 추가 반영 (트렌드 스케줄 운영 가이드)
+
+- `review_docs/trend-schedule-cron-operations.md`
+  - 크론 연동 예시(GitHub Actions), 검증 시나리오, 운영 체크리스트 문서 추가
+
+## 추가 반영 (비교 고급 모드 4/8)
+
+- `review_docs/compare-advanced-mode-implementation-plan.md`
+  - 비교 기본/고급 모드 구현 계획 문서 추가
+- `src/components/compare-interactive.tsx`
+  - 비교 모드 토글(기본 4개/고급 8개) UI 추가
+  - 모드별 선택 상한 동적 적용 및 초과 선택 차단
+  - 모드 전환 시 안내 문구(selectionNotice) 추가
+  - 기본 모드 전환 시 초과 선택 자동 정리 로직 추가
+
+## 추가 반영 (브리핑 KPI 리포트 템플릿)
+
+- `review_docs/briefing-kpi-report-template.md`
+  - 브리핑 이벤트 기반 주간 KPI 집계 템플릿 추가
+- `review_docs/README.md`
+  - 신규 운영/계획/리포트 문서 인덱스 반영
+
 ## 추가 반영 (트렌드 정렬 고도화)
 
 - `review_docs/trend-sorting-implementation-plan.md`

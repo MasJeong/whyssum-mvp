@@ -11,7 +11,10 @@
 - `phase3-implementation-plan.md`: 고도화 기능 구현 계획서
 - `briefing-implementation-plan.md`: 트렌드 브리핑 기능 구현 계획서
 - `briefing-revisit-hub-implementation-plan.md`: 브리핑 재방문 허브 고도화 계획서
+- `briefing-kpi-report-template.md`: 브리핑 KPI 주간 리포트 템플릿
+- `compare-advanced-mode-implementation-plan.md`: 비교 고급 모드(4/8) 구현 계획서
 - `trend-schedule-implementation-plan.md`: 트렌드 스케줄 업데이트 구현 계획서
+- `trend-schedule-cron-operations.md`: 트렌드 스케줄 크론 운영/검증 가이드
 - `react-next-onboarding.md`: React/Next 구조와 추천 흐름 온보딩 가이드
 
 ## 운영 기록 규칙
