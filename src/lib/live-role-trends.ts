@@ -25,6 +25,13 @@ type RoleTrendResult = {
   fetchedAt: string;
 };
 
+export type RefreshRoleResult = {
+  role: RoleKey;
+  mode: RoleTrendResult["mode"];
+  metricCount: number;
+  fetchedAt: string;
+};
+
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 const CACHE_TTL_MS = 12 * 60 * 60 * 1000;
 
@@ -89,6 +96,7 @@ const packageCatalog: Partial<Record<string, { npm?: string; pypi?: string; sign
 };
 
 const snapshotCache = new Map<string, { value: RepoSnapshot; expiresAt: number }>();
+const supportedRoles: RoleKey[] = ["backend", "designer", "pm"];
 
 /**
  * 외부 트렌드 소스에서 JSON을 가져오는 공통 요청 함수다.
@@ -365,4 +373,24 @@ export async function getRoleTrendMetrics(role: RoleKey): Promise<RoleTrendResul
       fetchedAt: new Date().toISOString(),
     };
   }
+}
+
+/**
+ * 전체 직무 트렌드 지표를 순회 갱신하고 결과 요약을 반환한다.
+ * @returns 직무별 갱신 결과 목록
+ */
+export async function refreshAllRoleTrendMetrics(): Promise<RefreshRoleResult[]> {
+  const results = await Promise.all(
+    supportedRoles.map(async (role) => {
+      const trend = await getRoleTrendMetrics(role);
+      return {
+        role,
+        mode: trend.mode,
+        metricCount: trend.metrics.length,
+        fetchedAt: trend.fetchedAt,
+      };
+    }),
+  );
+
+  return results;
 }
