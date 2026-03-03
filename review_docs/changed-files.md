@@ -227,3 +227,18 @@
 - `src/app/page.tsx`, `src/app/roles/page.tsx`, `src/app/scenarios/[role]/page.tsx`, `src/app/trends/[role]/page.tsx`, `src/components/briefing-board.tsx`, `src/components/scenario-explorer.tsx`
   - 주요 CTA에 의미 기반 아이콘을 추가해 스캔 속도/행동 예측성 강화
   - 브리핑/시나리오의 인라인 스타일을 공통 유틸 클래스로 치환해 유지보수성 개선
+
+## 추가 반영 (트렌드 정렬 고도화)
+
+- `review_docs/trend-sorting-implementation-plan.md`
+  - 트렌드 정렬 기준 확장 계획 문서 추가
+- `src/app/api/trends/[role]/route.ts`
+  - `sortBy` 쿼리(`adoption | demand | growth | confidence`) 파싱/검증 로직 추가
+  - 정렬 기준별 서버 정렬 및 동률 시 기술명 안정 정렬 적용
+  - 응답에 `sortBy` 포함
+- `src/app/trends/[role]/page.tsx`
+  - 트렌드 목록 기본 정렬을 채택률 기준으로 변경
+  - 정렬 기준 pill UI(채택률/수요지수/성장률/신뢰도) 추가
+  - `topN`/`sortBy` 쿼리 동시 유지 링크 처리
+- `README.md`
+  - 트렌드 페이지 쿼리(`topN`, `sortBy`)와 정렬 fallback 정책 문서화

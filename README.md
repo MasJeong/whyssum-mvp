@@ -15,6 +15,9 @@
   - `GET /api/recommendations`
   - `GET /api/trends/[role]`
   - `GET /api/briefings`
+- 트렌드 페이지 쿼리
+  - `topN`: 5/8/12 표시 개수 선택
+  - `sortBy`: `adoption | demand | growth | confidence` 정렬 기준 선택
 - 추천 결과에 `reasons`, `confidenceScore`, `trustLevel`, `whyNow`, `tradeoff`, `appliedRules` 포함
 
 ## 구현에서 신경 쓴 점
@@ -33,6 +36,7 @@
 
 - 트렌드 데이터는 GitHub 메타데이터를 기본으로 보고, npm/PyPI 신호를 보조로 사용합니다.
 - 외부 호출 실패 시 fallback 데이터를 반환하고, 응답에 `mode: live | fallback`를 포함합니다.
+- 트렌드 API는 `sortBy` 쿼리를 지원하며 잘못된 값은 `adoption`으로 안전 fallback합니다.
 
 관련 코드:
 - `src/lib/live-role-trends.ts`
