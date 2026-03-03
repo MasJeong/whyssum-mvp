@@ -11,9 +11,10 @@
 ## 현재 구현 범위
 
 - 직무 허브, 트렌드, 상황추천, 비교, 브리핑, 관심리스트, 인사이트 페이지
-- 3개 API 라우트
+- 4개 API 라우트
   - `GET /api/recommendations`
   - `GET /api/trends/[role]`
+  - `GET/POST /api/trends/schedule`
   - `GET /api/briefings`
 - 트렌드 페이지 쿼리
   - `topN`: 5/8/12 표시 개수 선택
@@ -42,13 +43,24 @@
 - `src/lib/live-role-trends.ts`
 - `src/app/api/trends/[role]/route.ts`
 
-### 3) 기본 보안/안정성
+### 3) 브리핑 재방문 허브
+
+- 브리핑 화면은 필터 상태(`role`, `impact`, `periodDays`)를 로컬에 저장해 재방문 시 자동 복원합니다.
+- 상단 요약에서 High 영향도 건수/최근 7일 건수/추천 직무를 함께 보여줍니다.
+- 카드는 영향도 우선 정렬로 노출되며, 다음 행동(상황추천/트렌드/비교/원문) 순서로 의사결정 동선을 제공합니다.
+
+관련 코드:
+- `src/app/api/briefings/route.ts`
+- `src/components/briefing-board.tsx`
+
+### 4) 기본 보안/안정성
 
 - 입력 검증: Zod 스키마 검증
 - 요청 제한: IP 기준 인메모리 rate limit
 - 응답 헤더: `X-RateLimit-*` 헤더 통일
 - 미들웨어: CSP/HSTS/X-Frame-Options 등 기본 보안 헤더 적용
 - 에러 응답: 스택 트레이스 비노출
+- 트렌드 스케줄 갱신 API는 `TRENDS_CRON_SECRET` 설정 시 비밀키 검증 후 실행
 
 관련 코드:
 - `src/lib/security/validation.ts`

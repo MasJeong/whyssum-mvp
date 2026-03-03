@@ -219,7 +219,7 @@
 ## 추가 반영 (색감/아이콘 체계 2차 정돈)
 
 - `src/app/globals.css`
-  - 토스식 신뢰 톤에 맞춰 primary 버튼/모바일 CTA 그라디언트를 블루 중심으로 단순화
+  - 신뢰 중심 톤에 맞춰 primary 버튼/모바일 CTA 그라디언트를 블루 중심으로 단순화
   - 신뢰도 배지 색상 토큰(`--trust-yellow`, `--trust-red`) 추가 및 일관 적용
   - 버튼/내비 공통 아이콘 슬롯(`.button-icon`)과 compact 버튼 유틸(`.button-compact`) 추가
 - `src/components/nav-links.tsx`, `src/components/mobile-bottom-nav.tsx`
@@ -227,6 +227,34 @@
 - `src/app/page.tsx`, `src/app/roles/page.tsx`, `src/app/scenarios/[role]/page.tsx`, `src/app/trends/[role]/page.tsx`, `src/components/briefing-board.tsx`, `src/components/scenario-explorer.tsx`
   - 주요 CTA에 의미 기반 아이콘을 추가해 스캔 속도/행동 예측성 강화
   - 브리핑/시나리오의 인라인 스타일을 공통 유틸 클래스로 치환해 유지보수성 개선
+
+## 추가 반영 (브리핑 재방문 허브 고도화)
+
+- `review_docs/briefing-revisit-hub-implementation-plan.md`
+  - 브리핑 재방문 허브 고도화 계획 문서 추가
+- `src/app/api/briefings/route.ts`
+  - 응답에 요약 지표(`summary.highImpactCount`, `summary.recentCount7d`, `summary.recommendedRole`) 추가
+- `src/components/briefing-board.tsx`
+  - 필터 상태 localStorage 복원/저장 추가
+  - 상단 핵심 요약 칩(High 영향도/최근 7일/추천 직무) 추가
+  - 카드 정렬을 영향도 우선(high > medium > low) + 최신순으로 조정
+  - 카드 액션 우선순위를 상황추천 중심으로 재배치
+  - 빈 결과에서 추천 필터 복구/기본값 초기화 액션 추가
+  - 경량 이벤트 로깅(`briefing_view`, `briefing_filter_change`, `briefing_card_action_click`, `briefing_empty_state_recover`) 추가
+- `README.md`, `review_docs/requirements.md`, `review_docs/cautions.md`
+  - 브리핑 재방문 허브 요구사항/주의사항/기능 설명 동기화
+
+## 추가 반영 (트렌드 스케줄 업데이트)
+
+- `review_docs/trend-schedule-implementation-plan.md`
+  - 트렌드 스케줄 업데이트 구현 계획 문서 추가
+- `src/lib/live-role-trends.ts`
+  - 전체 직무 트렌드 일괄 갱신 함수(`refreshAllRoleTrendMetrics`) 추가
+- `src/app/api/trends/schedule/route.ts`
+  - 스케줄 상태 조회(`GET`) 및 강제 갱신 실행(`POST`) API 추가
+  - `TRENDS_CRON_SECRET` 기반 호출 보호 로직 추가
+- `README.md`, `review_docs/README.md`, `review_docs/requirements.md`, `review_docs/cautions.md`
+  - 스케줄 API 사용/주의사항/요구사항 문서 동기화
 
 ## 추가 반영 (트렌드 정렬 고도화)
 

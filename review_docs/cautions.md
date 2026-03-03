@@ -16,6 +16,11 @@
 - 트렌드 페이지 정렬 기준(`sortBy`)은 채택률/수요지수/성장률/신뢰도만 허용되며, 잘못된 값은 채택률로 fallback됩니다.
 - 관심리스트는 브라우저 localStorage 기반이며 기기/브라우저 간 동기화되지 않습니다.
 - 브리핑은 현재 수동 큐레이션 데이터 기반이며 자동 수집 스케줄링은 미적용 상태입니다.
+- 브리핑 필터(직무/영향도/기간)는 마지막 선택이 localStorage에 저장되어 재방문 시 자동 복원됩니다.
+- 브리핑 카드는 영향도(high > medium > low) 우선, 동일 영향도에서는 최신 발행일 우선으로 노출됩니다.
+- 브리핑 카드의 기본 행동 우선순위는 상황추천 > 트렌드 > 비교 > 원문입니다.
+- 트렌드 스케줄 상태(`GET /api/trends/schedule`)는 메모리 상태라 서버 재시작 시 초기화됩니다.
+- `POST /api/trends/schedule`는 `TRENDS_CRON_SECRET`이 설정된 경우 비밀키가 맞아야 실행됩니다.
 - 전역 포커스 가시성(`:focus-visible`)을 적용했으므로 키보드 탐색 시 윤곽선이 보여야 정상입니다.
 - 비교/트렌드 테이블은 첫 번째 열이 고정(sticky)되며 가로 스크롤 시에도 기술명이 유지됩니다.
 - 상황추천/비교 상단의 "한 줄 결론"은 빠른 판단 보조용이며 최종 결정은 상세 근거 확인이 필요합니다.
@@ -76,3 +81,10 @@
 31. Primary 버튼의 블루 계층과 신뢰도 배지(High/Medium/Low) 색상 대비가 충분한지 확인
 32. `/trends/[role]?sortBy=adoption|demand|growth|confidence` 조합에서 표 정렬 순서가 기대대로 바뀌는지 확인
 33. `/trends/[role]?sortBy=invalid` 진입 시 채택률 기준으로 안전 fallback되는지 확인
+34. `/briefings` 재진입 시 마지막 필터(role/impact/periodDays)가 자동 복원되는지 확인
+35. 브리핑 상단 요약 칩(High 영향도/최근 7일/추천 직무)이 현재 필터 결과와 일치하는지 확인
+36. 브리핑 카드가 영향도 우선(high > medium > low)으로 정렬되는지 확인
+37. 브리핑 빈 결과에서 "추천 필터로 다시 보기" 클릭 시 결과가 복구되는지 확인
+38. `GET /api/trends/schedule`에서 최근 실행 상태(lastRunAt/lastDurationMs/lastSuccess)가 반환되는지 확인
+39. `POST /api/trends/schedule` 호출 시 per-role 결과(mode/metricCount)가 반환되는지 확인
+40. `TRENDS_CRON_SECRET` 설정 후 잘못된 키로 `POST /api/trends/schedule` 호출 시 401을 반환하는지 확인

@@ -10,7 +10,15 @@
 - `backend-review-guide.md`: 백엔드 관점에서 전체 구현을 검토하는 가이드
 - `phase3-implementation-plan.md`: 고도화 기능 구현 계획서
 - `briefing-implementation-plan.md`: 트렌드 브리핑 기능 구현 계획서
+- `briefing-revisit-hub-implementation-plan.md`: 브리핑 재방문 허브 고도화 계획서
+- `trend-schedule-implementation-plan.md`: 트렌드 스케줄 업데이트 구현 계획서
 - `react-next-onboarding.md`: React/Next 구조와 추천 흐름 온보딩 가이드
+
+## 운영 기록 규칙
+
+- 작업 완료 시 커밋/푸시는 기본으로 수행한다.
+- 커밋/푸시가 완료된 작업은 같은 라운드에서 관련 md 문서(`README.md`, `review_docs/changed-files.md`, `review_docs/cautions.md`)를 함께 최신화한다.
+- 브랜치는 `main` 기준으로 운영하고, 커밋 메시지는 `type: 한글 설명` 규칙을 유지한다.
 
 ## 검토 순서 추천
 
