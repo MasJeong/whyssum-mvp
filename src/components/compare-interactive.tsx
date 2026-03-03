@@ -40,9 +40,13 @@ const defaultSelectedByRole: Record<RoleKey, string[]> = {
 export default function CompareInteractive() {
   const [role, setRole] = useState<RoleKey>("backend");
   const [selected, setSelected] = useState<Set<string>>(new Set(defaultSelectedByRole.backend));
+  const [isAdvancedMode, setIsAdvancedMode] = useState(false);
+  const [selectionNotice, setSelectionNotice] = useState<string | null>(null);
   const [liveMetrics, setLiveMetrics] = useState<TrendMetric[] | null>(null);
   const [mode, setMode] = useState<"live" | "fallback" | "loading">("loading");
   const [loadError, setLoadError] = useState<string | null>(null);
+
+  const maxSelectable = isAdvancedMode ? 8 : 4;
 
   useEffect(() => {
     let active = true;
@@ -117,6 +121,7 @@ export default function CompareInteractive() {
   const switchRole = (nextRole: RoleKey) => {
     setRole(nextRole);
     setSelected(new Set(defaultSelectedByRole[nextRole]));
+    setSelectionNotice(null);
   };
 
   const selectedItems = useMemo(
@@ -153,19 +158,48 @@ export default function CompareInteractive() {
       const next = new Set(prev);
       if (next.has(name)) {
         if (next.size === 1) {
+          setSelectionNotice("최소 1개는 선택되어야 합니다.");
           return prev;
         }
         next.delete(name);
+        setSelectionNotice(null);
         return next;
       }
 
-      if (next.size >= 4) {
+      if (next.size >= maxSelectable) {
+        setSelectionNotice(
+          isAdvancedMode
+            ? "고급 모드에서는 최대 8개까지 선택할 수 있습니다."
+            : "기본 모드에서는 최대 4개까지 선택됩니다. 더 보려면 고급 모드를 켜세요.",
+        );
         return prev;
       }
 
       next.add(name);
+      setSelectionNotice(null);
       return next;
     });
+  };
+
+  /**
+   * 비교 모드를 전환하고 선택 상한을 초과하면 최신 선택 기준으로 잘라낸다.
+   * @param nextAdvanced 전환할 고급 모드 여부
+   */
+  const switchCompareMode = (nextAdvanced: boolean) => {
+    setIsAdvancedMode(nextAdvanced);
+    setSelected((prev) => {
+      const max = nextAdvanced ? 8 : 4;
+      if (prev.size <= max) {
+        return prev;
+      }
+      const trimmed = new Set(Array.from(prev).slice(0, max));
+      return trimmed;
+    });
+    if (!nextAdvanced && selectedItems.length > 4) {
+      setSelectionNotice("기본 모드로 전환되어 선택 항목이 4개로 조정되었습니다.");
+    } else {
+      setSelectionNotice(null);
+    }
   };
 
   return (
@@ -183,17 +217,39 @@ export default function CompareInteractive() {
             </button>
           ))}
         </div>
-        <h2>비교할 기술 선택 (최대 4개)</h2>
-        <p className="inline-note mt-xs">현재 {selectedItems.length}/4개 선택됨</p>
+        <div className="topn-switch mt-md" role="tablist" aria-label="비교 모드 선택">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={!isAdvancedMode}
+            className={`role-pill ${!isAdvancedMode ? "role-pill-active" : ""}`}
+            onClick={() => switchCompareMode(false)}
+          >
+            기본 모드 (최대 4개)
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={isAdvancedMode}
+            className={`role-pill ${isAdvancedMode ? "role-pill-active" : ""}`}
+            onClick={() => switchCompareMode(true)}
+          >
+            고급 모드 (최대 8개)
+          </button>
+        </div>
+        <h2>비교할 기술 선택 (최대 {maxSelectable}개)</h2>
+        <p className="inline-note mt-xs">현재 {selectedItems.length}/{maxSelectable}개 선택됨</p>
         <div className="checkbox-grid">
           {compareItems.map((item) => {
             const checked = selected.has(item.name);
+            const disabled = !checked && selected.size >= maxSelectable;
             return (
               <div key={item.name} className={`check-card ${checked ? "check-card-on" : ""}`}>
                 <input
                   id={`compare-${role}-${item.name}`}
                   type="checkbox"
                   checked={checked}
+                  disabled={disabled}
                   onChange={() => toggleSelection(item.name)}
                   aria-label={`${item.name} 비교 선택`}
                 />
@@ -204,6 +260,7 @@ export default function CompareInteractive() {
             );
           })}
         </div>
+        {selectionNotice ? <p className="inline-note mt-sm">{selectionNotice}</p> : null}
         <p className="inline-note mt-sm readable">
           현재 비교 기준: {roles.find((item) => item.key === role)?.name} · 데이터 모드: {mode.toUpperCase()}
         </p>
