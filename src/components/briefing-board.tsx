@@ -9,8 +9,21 @@ type ApiResponse = {
   items: BriefingItem[];
   count: number;
   fetchedAt: string;
+  summary?: {
+    highImpactCount: number;
+    recentCount7d: number;
+    recommendedRole: string;
+  };
   error?: string;
 };
+
+type StoredFilters = {
+  role: string;
+  impact: string;
+  periodDays: number;
+};
+
+const briefingFilterStorageKey = "whyssum:briefing:lastFilters";
 
 const roleOptions = [
   { value: "all", label: "전체" },
@@ -40,6 +53,28 @@ const routeByRole: Record<string, string> = {
 };
 
 /**
+ * 영향도 텍스트를 정렬 가능한 우선순위 값으로 변환한다.
+ * @param impact 영향도
+ * @returns 숫자 우선순위(high > medium > low)
+ */
+function getImpactRank(impact: BriefingItem["impact"]) {
+  if (impact === "high") return 3;
+  if (impact === "medium") return 2;
+  return 1;
+}
+
+/**
+ * 브리핑 사용 흐름 추적을 위한 경량 이벤트를 기록한다.
+ * @param name 이벤트 이름
+ * @param payload 부가 정보
+ */
+function logBriefingEvent(name: string, payload: Record<string, string | number>) {
+  if (typeof window === "undefined") return;
+  // 1차 단계에서는 콘솔 기반으로 이벤트를 확인하고, 후속 단계에서 서버 전송으로 확장한다.
+  console.info(`[briefing-event] ${name}`, payload);
+}
+
+/**
  * 브리핑 목록을 필터 조건으로 조회하고 카드 형태로 보여준다.
  * @returns 브리핑 보드 UI
  */
@@ -49,8 +84,34 @@ export default function BriefingBoard() {
   const [periodDays, setPeriodDays] = useState(30);
   const [items, setItems] = useState<BriefingItem[]>([]);
   const [fetchedAt, setFetchedAt] = useState<string>("");
+  const [summary, setSummary] = useState<ApiResponse["summary"]>();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(briefingFilterStorageKey);
+      if (!raw) return;
+      const parsed = JSON.parse(raw) as StoredFilters;
+      if (typeof parsed.role === "string") setRole(parsed.role);
+      if (typeof parsed.impact === "string") setImpact(parsed.impact);
+      if (typeof parsed.periodDays === "number") setPeriodDays(parsed.periodDays);
+    } catch {
+      // 저장소 접근 오류 시 기본값으로 동작한다.
+    }
+  }, []);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      try {
+        localStorage.setItem(briefingFilterStorageKey, JSON.stringify({ role, impact, periodDays }));
+      } catch {
+        // 저장소 접근 오류 시 저장을 건너뛴다.
+      }
+    }, 150);
+
+    return () => window.clearTimeout(timer);
+  }, [impact, periodDays, role]);
 
   useEffect(() => {
     let active = true;
@@ -79,10 +140,18 @@ export default function BriefingBoard() {
         if (!active) return;
         setItems(payload.items ?? []);
         setFetchedAt(payload.fetchedAt ?? "");
+        setSummary(payload.summary);
+        logBriefingEvent("briefing_view", {
+          role,
+          impact,
+          periodDays,
+          count: payload.count ?? 0,
+        });
       } catch (fetchError) {
         if (!active) return;
         setError(fetchError instanceof Error ? fetchError.message : "알 수 없는 오류가 발생했습니다.");
         setItems([]);
+        setSummary(undefined);
       } finally {
         if (active) setLoading(false);
       }
@@ -99,6 +168,30 @@ export default function BriefingBoard() {
     return new Date(fetchedAt).toLocaleString("ko-KR");
   }, [fetchedAt]);
 
+  const sortedItems = useMemo(() => {
+    return [...items].sort((left, right) => {
+      const impactCompared = getImpactRank(right.impact) - getImpactRank(left.impact);
+      if (impactCompared !== 0) {
+        return impactCompared;
+      }
+      return new Date(right.publishedAt).getTime() - new Date(left.publishedAt).getTime();
+    });
+  }, [items]);
+
+  const recommendedRoleLabel = useMemo(() => {
+    if (!summary?.recommendedRole) return "전체";
+    return roleOptions.find((option) => option.value === summary.recommendedRole)?.label ?? "전체";
+  }, [summary?.recommendedRole]);
+
+  /**
+   * 빈 결과 화면에서 기본 추천 필터로 복구한다.
+   */
+  function applyRecoveryFilters() {
+    setImpact("all");
+    setPeriodDays(90);
+    logBriefingEvent("briefing_empty_state_recover", { role, impact, periodDays });
+  }
+
   return (
     <>
       <section className="card">
@@ -106,7 +199,13 @@ export default function BriefingBoard() {
         <div className="filter-grid">
           <label className="field">
             <span>직무</span>
-            <select value={role} onChange={(event) => setRole(event.target.value)}>
+            <select
+              value={role}
+              onChange={(event) => {
+                setRole(event.target.value);
+                logBriefingEvent("briefing_filter_change", { filter: "role", value: event.target.value });
+              }}
+            >
               {roleOptions.map((option) => (
                 <option key={option.value} value={option.value}>
                   {option.label}
@@ -116,7 +215,13 @@ export default function BriefingBoard() {
           </label>
           <label className="field">
             <span>영향도</span>
-            <select value={impact} onChange={(event) => setImpact(event.target.value)}>
+            <select
+              value={impact}
+              onChange={(event) => {
+                setImpact(event.target.value);
+                logBriefingEvent("briefing_filter_change", { filter: "impact", value: event.target.value });
+              }}
+            >
               {impactOptions.map((option) => (
                 <option key={option.value} value={option.value}>
                   {option.label}
@@ -126,7 +231,13 @@ export default function BriefingBoard() {
           </label>
           <label className="field">
             <span>기간</span>
-            <select value={periodDays} onChange={(event) => setPeriodDays(Number(event.target.value))}>
+            <select
+              value={periodDays}
+              onChange={(event) => {
+                setPeriodDays(Number(event.target.value));
+                logBriefingEvent("briefing_filter_change", { filter: "periodDays", value: Number(event.target.value) });
+              }}
+            >
               {periodOptions.map((option) => (
                 <option key={option.value} value={option.value}>
                   {option.label}
@@ -135,20 +246,41 @@ export default function BriefingBoard() {
             </select>
           </label>
         </div>
+        <div className="chip-row mt-sm">
+          <span className="chip">High 영향도 {summary?.highImpactCount ?? 0}건</span>
+          <span className="chip">최근 7일 {summary?.recentCount7d ?? 0}건</span>
+          <span className="chip">추천 직무: {recommendedRoleLabel}</span>
+        </div>
         <p className="inline-note mt-sm">
-          {loading ? "업데이트 중..." : `마지막 조회: ${fetchedLabel}`}
+          {loading ? "업데이트 중..." : `마지막 조회: ${fetchedLabel} · 최근 사용 필터 자동 복원`}
         </p>
         {error ? <p className="error-text">{error}</p> : null}
       </section>
 
-      {items.length === 0 ? (
+      {sortedItems.length === 0 ? (
         <section className="card">
           <h2>조건에 맞는 브리핑이 없습니다</h2>
           <p className="muted">필터를 완화하거나 기간을 늘려 다시 확인해보세요.</p>
+          <div className="button-row mt-sm">
+            <button type="button" className="button button-primary" onClick={applyRecoveryFilters}>
+              추천 필터로 다시 보기
+            </button>
+            <button
+              type="button"
+              className="button button-ghost"
+              onClick={() => {
+                setRole("all");
+                setImpact("all");
+                setPeriodDays(30);
+              }}
+            >
+              기본값으로 초기화
+            </button>
+          </div>
         </section>
       ) : (
         <section className="grid grid-2">
-          {items.map((item) => (
+          {sortedItems.map((item) => (
             <article className="card" key={item.id}>
               <div className="split-note">
                 <p className="eyebrow">{item.role.toUpperCase()}</p>
@@ -168,18 +300,25 @@ export default function BriefingBoard() {
               <p className="inline-note mt-xs">
                 출처: {item.sourceName} · {new Date(item.publishedAt).toLocaleDateString("ko-KR")}
               </p>
+              <p className="muted mt-xs">왜 지금 봐야 하나요? 영향도 {item.impact} 이슈로 의사결정 우선 확인이 필요합니다.</p>
               <div className="button-row">
-                <a href={item.sourceUrl} target="_blank" rel="noreferrer" className="button button-ghost">
+                <Link
+                  href={routeByRole[item.role] ?? "/scenarios/backend"}
+                  className="button button-primary"
+                  onClick={() => logBriefingEvent("briefing_card_action_click", { action: "scenario", id: item.id, role: item.role })}
+                >
                   <span className="button-icon" aria-hidden="true">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M14 5h5v5" />
-                      <path d="M10 14L19 5" />
-                      <path d="M19 13v6H5V5h6" />
+                      <path d="M12 4.5l1.9 3.8 4.2.6-3 2.9.7 4.2L12 14l-3.8 2 .7-4.2-3-2.9 4.2-.6L12 4.5z" />
                     </svg>
                   </span>
-                  원문 보기
-                </a>
-                <Link href={item.role === "all" ? "/trends/backend" : `/trends/${item.role}`} className="button button-ghost">
+                  상황추천
+                </Link>
+                <Link
+                  href={item.role === "all" ? "/trends/backend" : `/trends/${item.role}`}
+                  className="button button-ghost"
+                  onClick={() => logBriefingEvent("briefing_card_action_click", { action: "trends", id: item.id, role: item.role })}
+                >
                   <span className="button-icon" aria-hidden="true">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M4 19h16" />
@@ -190,7 +329,11 @@ export default function BriefingBoard() {
                   </span>
                   트렌드
                 </Link>
-                <Link href="/compare" className="button button-ghost">
+                <Link
+                  href="/compare"
+                  className="button button-ghost"
+                  onClick={() => logBriefingEvent("briefing_card_action_click", { action: "compare", id: item.id, role: item.role })}
+                >
                   <span className="button-icon" aria-hidden="true">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                       <rect x="5" y="6" width="5" height="12" rx="1.2" />
@@ -199,14 +342,22 @@ export default function BriefingBoard() {
                   </span>
                   비교
                 </Link>
-                <Link href={routeByRole[item.role] ?? "/scenarios/backend"} className="button button-primary">
+                <a
+                  href={item.sourceUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="button button-ghost"
+                  onClick={() => logBriefingEvent("briefing_card_action_click", { action: "source", id: item.id, role: item.role })}
+                >
                   <span className="button-icon" aria-hidden="true">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M12 4.5l1.9 3.8 4.2.6-3 2.9.7 4.2L12 14l-3.8 2 .7-4.2-3-2.9 4.2-.6L12 4.5z" />
+                      <path d="M14 5h5v5" />
+                      <path d="M10 14L19 5" />
+                      <path d="M19 13v6H5V5h6" />
                     </svg>
                   </span>
-                  상황추천
-                </Link>
+                  원문 보기
+                </a>
               </div>
             </article>
           ))}

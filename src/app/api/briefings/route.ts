@@ -6,6 +6,29 @@ const RATE_LIMIT_WINDOW_MS = 60_000;
 const RATE_LIMIT_PER_WINDOW = 40;
 
 /**
+ * 필터된 브리핑 목록에서 요약 지표를 계산한다.
+ * @param items 필터 결과 브리핑 목록
+ * @returns 브리핑 상단 요약 지표
+ */
+function buildBriefingSummary(items: ReturnType<typeof filterBriefings>) {
+  const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+  const highImpactCount = items.filter((item) => item.impact === "high").length;
+  const recentCount7d = items.filter((item) => new Date(item.publishedAt).getTime() >= sevenDaysAgo).length;
+  const roleCount = items.reduce<Record<string, number>>((acc, item) => {
+    const key = item.role === "all" ? "all" : item.role;
+    acc[key] = (acc[key] ?? 0) + 1;
+    return acc;
+  }, {});
+  const recommendedRole = Object.entries(roleCount).sort((left, right) => right[1] - left[1])[0]?.[0] ?? "all";
+
+  return {
+    highImpactCount,
+    recentCount7d,
+    recommendedRole,
+  };
+}
+
+/**
  * 브리핑 응답에 요청 제한 헤더를 통일해서 내려준다.
  * 프론트에서 재시도/쿨다운 동작을 만들 수 있도록 재설정 시각을 함께 포함한다.
  */
@@ -44,11 +67,13 @@ export async function GET(request: Request) {
   const periodDays = Number.isFinite(periodRaw) ? Math.max(1, Math.min(180, periodRaw)) : 30;
 
   const items = filterBriefings({ role, impact, periodDays });
+  const summary = buildBriefingSummary(items);
 
   const response = NextResponse.json({
     filters: { role: role ?? "all", impact: impact ?? "all", periodDays },
     count: items.length,
     fetchedAt: new Date().toISOString(),
+    summary,
     items,
   });
 
