@@ -10,7 +10,7 @@ export default function WatchlistPage() {
       <section className="card">
         <p className="eyebrow">관심리스트</p>
         <h1>저장한 도구 모아보기</h1>
-        <p className="muted">트렌드/비교 화면에서 관심으로 저장한 항목을 모아 확인할 수 있습니다.</p>
+        <p className="muted">저장한 항목에서 트렌드·비교·상황추천으로 바로 이동해 다음 결정을 이어갈 수 있습니다.</p>
       </section>
       <WatchlistView />
     </main>

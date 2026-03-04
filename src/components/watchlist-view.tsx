@@ -82,6 +82,29 @@ function getWatchlistServerSnapshot() {
 }
 
 /**
+ * 관심리스트 화면 이벤트를 콘솔에 기록한다.
+ * @param name 이벤트 이름
+ * @param payload 이벤트 세부 속성
+ * @returns 없음
+ */
+function logWatchlistViewEvent(name: string, payload: Record<string, string | number | boolean>) {
+  if (typeof window === "undefined") return;
+  console.info(`[watchlist-event] ${name}`, payload);
+}
+
+/**
+ * 저장 키의 역할 값을 라우팅 가능한 role 값으로 보정한다.
+ * @param role 저장 키에서 추출한 role 문자열
+ * @returns 유효한 role 키
+ */
+function normalizeRole(role: string): "backend" | "designer" | "pm" {
+  if (role === "backend" || role === "designer" || role === "pm") {
+    return role;
+  }
+  return "backend";
+}
+
+/**
  * 저장된 관심 도구 목록을 조회/삭제할 수 있는 화면 컴포넌트다.
  * @returns 관심리스트 UI
  */
@@ -94,7 +117,7 @@ export default function WatchlistView() {
         const [role, ...toolTokens] = item.split(":");
         return {
           key: item,
-          role,
+          role: normalizeRole(role),
           tool: toolTokens.join(":") || item,
         };
       }),
@@ -109,6 +132,7 @@ export default function WatchlistView() {
   const removeItem = (key: string) => {
     const next = items.filter((item) => item !== key);
     writeWatchlist(next);
+    logWatchlistViewEvent("watchlist_remove", { source: "watchlist_view", itemKey: key });
   };
 
   if (parsedItems.length === 0) {
@@ -141,6 +165,7 @@ export default function WatchlistView() {
             className="button button-ghost"
             onClick={() => {
               writeWatchlist([]);
+              logWatchlistViewEvent("watchlist_remove", { source: "watchlist_view", itemKey: "all" });
             }}
           >
             전체 삭제
@@ -154,7 +179,27 @@ export default function WatchlistView() {
             <p className="eyebrow">{item.role}</p>
             <h2>{item.tool}</h2>
             <div className="button-row">
-              <Link href={`/trends/${item.role}`} className="button button-primary">
+              <Link
+                href={`/scenarios/${item.role}`}
+                className="button button-primary"
+                onClick={() => logWatchlistViewEvent("watchlist_cta_click", { action: "scenario", role: item.role, itemKey: item.key })}
+              >
+                상황추천 이동
+              </Link>
+              <Link
+                href="/compare"
+                className="button button-ghost"
+                onClick={() => logWatchlistViewEvent("watchlist_cta_click", { action: "compare", role: item.role, itemKey: item.key })}
+              >
+                비교로 이동
+              </Link>
+            </div>
+            <div className="button-row mt-xs">
+              <Link
+                href={`/trends/${item.role}`}
+                className="button button-primary"
+                onClick={() => logWatchlistViewEvent("watchlist_cta_click", { action: "trends", role: item.role, itemKey: item.key })}
+              >
                 트렌드 보기
               </Link>
               <button type="button" className="button button-ghost" onClick={() => removeItem(item.key)}>

@@ -310,7 +310,12 @@ p {
   font-size: 0.87rem;
   font-weight: 760;
   text-decoration: none;
+  cursor: pointer;
   transition: all 0.2s ease;
+}
+
+.button:disabled {
+  cursor: not-allowed;
 }
 
 .button-icon {

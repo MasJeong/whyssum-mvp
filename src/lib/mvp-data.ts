@@ -111,11 +111,25 @@ export const recommendations: Record<RoleKey, Recommendation[]> = {
       risks: ["초기 개발 속도가 느릴 수 있음"],
     },
     {
+      label: "안정형",
+      stack: "Spring Boot + MySQL + AWS ECS",
+      fitScore: 81,
+      pros: ["운영 표준화와 인프라 가시성 확보가 쉬움", "중규모 팀에서 역할 분담이 명확"],
+      risks: ["인프라 설정 단계에서 초기 세팅 비용이 큼"],
+    },
+    {
       label: "속도형",
       stack: "NestJS + PostgreSQL",
       fitScore: 89,
       pros: ["1인 개발 속도가 빠름", "타입 기반 유지보수가 쉬움"],
       risks: ["고트래픽 구간에서 튜닝 필요"],
+    },
+    {
+      label: "속도형",
+      stack: "FastAPI + PostgreSQL + Redis",
+      fitScore: 86,
+      pros: ["실험 API를 빠르게 릴리스 가능", "Python 생태계 도입 장벽이 낮음"],
+      risks: ["비동기 처리 설계가 느슨하면 운영 이슈가 발생할 수 있음"],
     },
     {
       label: "확장형",
@@ -134,11 +148,25 @@ export const recommendations: Record<RoleKey, Recommendation[]> = {
       risks: ["문서화가 누락되면 효율 저하"],
     },
     {
+      label: "안정형",
+      stack: "Figma + FigJam + Storybook",
+      fitScore: 83,
+      pros: ["디자인-개발 핸드오프가 일관됨", "컴포넌트 기준 커뮤니케이션이 쉬움"],
+      risks: ["스토리 유지 관리 비용이 증가할 수 있음"],
+    },
+    {
       label: "속도형",
       stack: "Figma + Framer",
       fitScore: 88,
       pros: ["프로토타입을 빠르게 배포", "비개발자도 실험 가능"],
       risks: ["프로덕션 전환 시 핸드오프 관리 필요"],
+    },
+    {
+      label: "속도형",
+      stack: "Figma + Lottie + Framer",
+      fitScore: 84,
+      pros: ["모션 시안 검증을 빠르게 반복 가능", "마케팅 랜딩 실험에 유리"],
+      risks: ["모션 산출물 품질 기준을 미리 정하지 않으면 재작업이 늘어날 수 있음"],
     },
     {
       label: "확장형",
@@ -157,6 +185,13 @@ export const recommendations: Record<RoleKey, Recommendation[]> = {
       risks: ["설정 복잡도 높음"],
     },
     {
+      label: "안정형",
+      stack: "Jira + Confluence + Miro",
+      fitScore: 80,
+      pros: ["요구사항 정렬과 워크숍 산출물 관리가 체계적", "크로스팀 커뮤니케이션 누락을 줄임"],
+      risks: ["초기 운영 룰을 정하지 않으면 보드가 빠르게 복잡해짐"],
+    },
+    {
       label: "속도형",
       stack: "Linear + Notion + Slack",
       fitScore: 91,
@@ -169,6 +204,13 @@ export const recommendations: Record<RoleKey, Recommendation[]> = {
       fitScore: 79,
       pros: ["리포팅 자동화와 인사이트 공유", "데이터 기반 우선순위 설정"],
       risks: ["데이터 모델 설계 필요"],
+    },
+    {
+      label: "확장형",
+      stack: "Linear + Amplitude + BigQuery",
+      fitScore: 78,
+      pros: ["실험 이벤트와 제품 지표를 단일 흐름으로 관리", "중장기 분석 기반 로드맵 수립에 유리"],
+      risks: ["이벤트 택소노미를 초기에 정교하게 설계해야 함"],
     },
   ],
 };

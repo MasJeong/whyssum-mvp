@@ -165,6 +165,17 @@ function createSnapshotId() {
   return `snapshot-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
+/**
+ * 상황추천 화면의 사용자 행동 이벤트를 콘솔에 기록한다.
+ * @param name 이벤트 이름
+ * @param payload 이벤트 세부 속성
+ * @returns 없음
+ */
+function logScenarioEvent(name: string, payload: Record<string, string | number | boolean>) {
+  if (typeof window === "undefined") return;
+  console.info(`[scenario-event] ${name}`, payload);
+}
+
 const presetByRole: Record<RoleKey, { label: string; teamSize: string; timeline: string; priority: string }[]> = {
   backend: [
     { label: "1인 MVP", teamSize: "1~3명", timeline: "2개월", priority: "빠른 출시" },
@@ -211,8 +222,11 @@ export default function ScenarioExplorer({ role, initialSelection }: ScenarioExp
   const [appliedRules, setAppliedRules] = useState<string[]>([]);
   const [savedSnapshots, setSavedSnapshots] = useState<ScenarioSnapshot[]>([]);
   const [expandedCards, setExpandedCards] = useState<Record<string, boolean>>({});
+  const [showAllRecommendations, setShowAllRecommendations] = useState(false);
+  const [showTrustGuide, setShowTrustGuide] = useState(false);
   const [items, setItems] = useState<RecommendationItem[]>(fallbackRecommendations[role]);
   const topPick = items[0];
+  const visibleItems = showAllRecommendations ? items : items.slice(0, 3);
 
   useEffect(() => {
     // 역할 전환 시 해당 역할의 마지막 선택값을 우선 복원하고,
@@ -250,6 +264,8 @@ export default function ScenarioExplorer({ role, initialSelection }: ScenarioExp
     setError(null);
     setSaveMessage(null);
     setExpandedCards({});
+    setShowAllRecommendations(false);
+    setShowTrustGuide(false);
     setSavedSnapshots(readSnapshotsByRole(role));
   }, [initialSelection?.priority, initialSelection?.teamSize, initialSelection?.timeline, priorityOptions, role, teamOptions, timelineOptions]);
 
@@ -406,6 +422,13 @@ export default function ScenarioExplorer({ role, initialSelection }: ScenarioExp
 
     writeAllScenarioSnapshots(nextAll);
     setSavedSnapshots(readSnapshotsByRole(role));
+    logScenarioEvent("scenario_snapshot_save", {
+      role,
+      teamSize,
+      timeline,
+      priority,
+      duplicate: Boolean(duplicated),
+    });
   };
 
   /**
@@ -418,6 +441,12 @@ export default function ScenarioExplorer({ role, initialSelection }: ScenarioExp
     setTimeline(snapshot.timeline);
     setPriority(snapshot.priority);
     setSaveMessage("저장된 조건을 불러왔습니다.");
+    logScenarioEvent("scenario_snapshot_apply", {
+      role,
+      teamSize: snapshot.teamSize,
+      timeline: snapshot.timeline,
+      priority: snapshot.priority,
+    });
   };
 
   /**
@@ -449,10 +478,18 @@ export default function ScenarioExplorer({ role, initialSelection }: ScenarioExp
    * @returns 없음
    */
   const toggleCardDetail = (cardKey: string) => {
-    setExpandedCards((prev) => ({
-      ...prev,
-      [cardKey]: !prev[cardKey],
-    }));
+    setExpandedCards((prev) => {
+      const nextOpen = !prev[cardKey];
+      logScenarioEvent("scenario_recommendation_expand", {
+        role,
+        cardKey,
+        expanded: nextOpen,
+      });
+      return {
+        ...prev,
+        [cardKey]: nextOpen,
+      };
+    });
   };
 
   /**
@@ -558,6 +595,30 @@ export default function ScenarioExplorer({ role, initialSelection }: ScenarioExp
       <section className="card">
         <h2>조건 기반 추천</h2>
         <p className="muted">팀 규모, 일정, 우선순위를 선택하면 추천안을 다시 계산합니다.</p>
+        <div className="button-row mt-xs">
+          <button
+            type="button"
+            className="button button-ghost button-compact"
+            onClick={() => {
+              setShowTrustGuide((prev) => {
+                const next = !prev;
+                if (next) {
+                  logScenarioEvent("trust_help_open", { role, surface: "scenario" });
+                }
+                return next;
+              });
+            }}
+            aria-expanded={showTrustGuide}
+            aria-controls="scenario-trust-guide"
+          >
+            신뢰도 기준 보기
+          </button>
+        </div>
+        {showTrustGuide ? (
+          <p id="scenario-trust-guide" className="inline-note mt-xs">
+            신뢰도 점수는 적합도, 조건 근거 개수, 직무 트렌드 신호를 합성한 휴리스틱 지표입니다.
+          </p>
+        ) : null}
         <div className="chip-row mt-sm">
           {presetByRole[role].map((preset) => (
             <button
@@ -696,9 +757,36 @@ export default function ScenarioExplorer({ role, initialSelection }: ScenarioExp
         </section>
       ) : null}
 
+      {items.length > 3 ? (
+        <section className="card">
+          <div className="split-note">
+            <p className="list-title no-margin">
+              추천 {items.length}개 중 {showAllRecommendations ? "전체" : "상위 3개"} 표시
+            </p>
+            <button
+              type="button"
+              className="button button-ghost"
+              onClick={() => {
+                setShowAllRecommendations((prev) => {
+                  const next = !prev;
+                  logScenarioEvent("scenario_show_all_toggle", {
+                    role,
+                    showAll: next,
+                    recommendationCount: items.length,
+                  });
+                  return next;
+                });
+              }}
+            >
+              {showAllRecommendations ? "상위 3개만 보기" : "전체 추천 보기"}
+            </button>
+          </div>
+        </section>
+      ) : null}
+
       <section className="grid grid-3">
-        {items.map((pick, index) => (
-          <article className="card" key={pick.label}>
+        {visibleItems.map((pick, index) => (
+          <article className="card" key={`${pick.label}-${pick.stack}-${index}`}>
             <p className="eyebrow">{index + 1}순위 · {pick.label}</p>
             <h2>{pick.stack}</h2>
             {(() => {
