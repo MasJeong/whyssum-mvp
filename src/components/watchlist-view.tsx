@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useSyncExternalStore } from "react";
+import { useMemo, useRef, useState, useSyncExternalStore } from "react";
 
 const STORAGE_KEY = "whyssum:watchlist";
 const WATCHLIST_CHANGED_EVENT = "whyssum:watchlist-changed";
@@ -82,34 +82,13 @@ function getWatchlistServerSnapshot() {
 }
 
 /**
- * 관심리스트 화면 이벤트를 콘솔에 기록한다.
- * @param name 이벤트 이름
- * @param payload 이벤트 세부 속성
- * @returns 없음
- */
-function logWatchlistViewEvent(name: string, payload: Record<string, string | number | boolean>) {
-  if (typeof window === "undefined") return;
-  console.info(`[watchlist-event] ${name}`, payload);
-}
-
-/**
- * 저장 키의 역할 값을 라우팅 가능한 role 값으로 보정한다.
- * @param role 저장 키에서 추출한 role 문자열
- * @returns 유효한 role 키
- */
-function normalizeRole(role: string): "backend" | "designer" | "pm" {
-  if (role === "backend" || role === "designer" || role === "pm") {
-    return role;
-  }
-  return "backend";
-}
-
-/**
  * 저장된 관심 도구 목록을 조회/삭제할 수 있는 화면 컴포넌트다.
  * @returns 관심리스트 UI
  */
 export default function WatchlistView() {
   const items = useSyncExternalStore(subscribeWatchlist, getWatchlistSnapshot, getWatchlistServerSnapshot);
+  const importInputRef = useRef<HTMLInputElement | null>(null);
+  const [importMessage, setImportMessage] = useState<string | null>(null);
 
   const parsedItems = useMemo(
     () =>
@@ -117,7 +96,7 @@ export default function WatchlistView() {
         const [role, ...toolTokens] = item.split(":");
         return {
           key: item,
-          role: normalizeRole(role),
+          role,
           tool: toolTokens.join(":") || item,
         };
       }),
@@ -132,7 +111,62 @@ export default function WatchlistView() {
   const removeItem = (key: string) => {
     const next = items.filter((item) => item !== key);
     writeWatchlist(next);
-    logWatchlistViewEvent("watchlist_remove", { source: "watchlist_view", itemKey: key });
+  };
+
+  /**
+   * 현재 관심리스트를 JSON 파일로 내보낸다.
+   * @returns 없음
+   */
+  const exportWatchlist = () => {
+    if (typeof window === "undefined") return;
+
+    const payload = {
+      version: 1,
+      exportedAt: new Date().toISOString(),
+      items,
+    };
+
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+    const url = window.URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = "whyssum-watchlist.json";
+    anchor.click();
+    window.URL.revokeObjectURL(url);
+    setImportMessage("관심리스트를 JSON 파일로 내보냈습니다.");
+  };
+
+  /**
+   * JSON 파일에서 관심리스트를 읽어 병합 저장한다.
+   * @param event 파일 입력 이벤트
+   * @returns 없음
+   */
+  const importWatchlist = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const raw = await file.text();
+      const parsed = JSON.parse(raw) as { items?: unknown };
+      const importedItems = Array.isArray(parsed.items)
+        ? parsed.items.filter((item): item is string => typeof item === "string")
+        : [];
+
+      if (importedItems.length === 0) {
+        setImportMessage("가져올 항목이 없거나 파일 형식이 올바르지 않습니다.");
+        return;
+      }
+
+      const merged = Array.from(new Set([...items, ...importedItems]));
+      writeWatchlist(merged);
+      setImportMessage(`${importedItems.length}개 항목을 가져왔습니다.`);
+    } catch {
+      setImportMessage("파일을 읽지 못했습니다. JSON 파일을 확인해 주세요.");
+    } finally {
+      if (importInputRef.current) {
+        importInputRef.current.value = "";
+      }
+    }
   };
 
   if (parsedItems.length === 0) {
@@ -140,6 +174,27 @@ export default function WatchlistView() {
       <section className="card">
         <h2>아직 저장된 항목이 없습니다</h2>
         <p className="muted">트렌드/비교 화면에서 &quot;관심&quot; 버튼을 눌러 저장해보세요.</p>
+        <div className="button-row">
+          <button
+            type="button"
+            className="button button-ghost"
+            onClick={() => {
+              importInputRef.current?.click();
+            }}
+          >
+            가져오기
+          </button>
+        </div>
+        <input
+          ref={importInputRef}
+          type="file"
+          accept="application/json"
+          className="sr-only"
+          onChange={(event) => {
+            void importWatchlist(event);
+          }}
+        />
+        {importMessage ? <p className="inline-note mt-xs">{importMessage}</p> : null}
         <div className="button-row">
           <Link href="/trends/backend" className="button button-primary">
             트렌드 보러가기
@@ -160,17 +215,41 @@ export default function WatchlistView() {
             <h2>저장 항목 {parsedItems.length}개</h2>
             <p className="muted">브라우저 로컬 저장소 기준으로 관리됩니다.</p>
           </div>
-          <button
-            type="button"
-            className="button button-ghost"
-            onClick={() => {
-              writeWatchlist([]);
-              logWatchlistViewEvent("watchlist_remove", { source: "watchlist_view", itemKey: "all" });
-            }}
-          >
-            전체 삭제
-          </button>
+          <div className="button-row no-margin">
+            <button type="button" className="button button-ghost" onClick={exportWatchlist}>
+              내보내기
+            </button>
+            <button
+              type="button"
+              className="button button-ghost"
+              onClick={() => {
+                importInputRef.current?.click();
+              }}
+            >
+              가져오기
+            </button>
+            <button
+              type="button"
+              className="button button-ghost"
+              onClick={() => {
+                writeWatchlist([]);
+                setImportMessage("관심리스트를 비웠습니다.");
+              }}
+            >
+              전체 삭제
+            </button>
+          </div>
         </div>
+        <input
+          ref={importInputRef}
+          type="file"
+          accept="application/json"
+          className="sr-only"
+          onChange={(event) => {
+            void importWatchlist(event);
+          }}
+        />
+        {importMessage ? <p className="inline-note mt-xs">{importMessage}</p> : null}
       </section>
 
       <section className="grid grid-3">
@@ -179,27 +258,7 @@ export default function WatchlistView() {
             <p className="eyebrow">{item.role}</p>
             <h2>{item.tool}</h2>
             <div className="button-row">
-              <Link
-                href={`/scenarios/${item.role}`}
-                className="button button-primary"
-                onClick={() => logWatchlistViewEvent("watchlist_cta_click", { action: "scenario", role: item.role, itemKey: item.key })}
-              >
-                상황추천 이동
-              </Link>
-              <Link
-                href="/compare"
-                className="button button-ghost"
-                onClick={() => logWatchlistViewEvent("watchlist_cta_click", { action: "compare", role: item.role, itemKey: item.key })}
-              >
-                비교로 이동
-              </Link>
-            </div>
-            <div className="button-row mt-xs">
-              <Link
-                href={`/trends/${item.role}`}
-                className="button button-primary"
-                onClick={() => logWatchlistViewEvent("watchlist_cta_click", { action: "trends", role: item.role, itemKey: item.key })}
-              >
+              <Link href={`/trends/${item.role}`} className="button button-primary">
                 트렌드 보기
               </Link>
               <button type="button" className="button button-ghost" onClick={() => removeItem(item.key)}>

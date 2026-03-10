@@ -7,11 +7,17 @@
 1. `src/app/api/recommendations/route.ts`
 2. `src/app/api/trends/[role]/route.ts`
 3. `src/app/api/briefings/route.ts`
-4. `src/lib/live-role-trends.ts`
-5. `src/lib/briefing-data.ts`
-6. `src/lib/security/rate-limit.ts`
-7. `src/lib/security/validation.ts`
-8. `src/lib/mvp-data.ts`
+4. `src/app/api/subscribe/route.ts`
+5. `src/app/feed.xml/route.ts`
+6. `src/app/api/growth-events/route.ts`
+7. `src/app/api/growth-kpis/route.ts`
+8. `src/app/api/snapshots/route.ts`
+9. `src/app/sitemap.ts`
+10. `src/lib/live-role-trends.ts`
+11. `src/lib/briefing-data.ts`
+12. `src/lib/security/rate-limit.ts`
+13. `src/lib/security/validation.ts`
+14. `src/lib/mvp-data.ts`
 
 위 6개만 보면, 데이터 요청/검증/가공/응답까지 핵심 로직을 거의 다 파악할 수 있습니다.
 
@@ -77,6 +83,59 @@
   - 브리핑 카드 배열
   - 적용 필터
   - count, fetchedAt
+
+### D. 구독 API
+
+- 경로: `POST /api/subscribe`
+- 파일: `src/app/api/subscribe/route.ts`
+- 입력 바디:
+  - `email` (유효한 이메일 형식)
+- 검증:
+  - `src/lib/security/validation.ts`의 `subscribeBodySchema`
+- 동작:
+  - 중복 이메일이면 성공 메시지로 응답(멱등 처리)
+  - 신규 이메일이면 메모리 Set에 저장
+- 실패 케이스:
+  - 400: 이메일 형식 오류
+  - 429: rate limit 초과
+  - 500: 내부 처리 오류
+
+### E. 브리핑 RSS
+
+- 경로: `GET /feed.xml`
+- 파일: `src/app/feed.xml/route.ts`
+- 동작:
+  - 브리핑 데이터를 최신순 25건으로 정렬해 RSS XML 생성
+  - `Cache-Control`로 공개 캐시 정책 적용
+
+### F. 성장 이벤트 수집 API
+
+- 경로: `POST /api/growth-events`
+- 파일: `src/app/api/growth-events/route.ts`
+- 입력 바디:
+  - 성장 이벤트 이름, 페이지 키, visitor/session 식별자, occurredAt, meta
+- 동작:
+  - Zod 기반 이벤트 검증 후 메모리 저장소에 적재
+  - rate limit 헤더 포함
+
+### G. 성장 KPI API
+
+- 경로: `GET /api/growth-kpis?window=d1|d7|d30`
+- 파일: `src/app/api/growth-kpis/route.ts`
+- 동작:
+  - 최근 이벤트 저장소에서 activation/share/revisit/ad CTR/newsletter 비율 집계
+
+### H. 공유 스냅샷 API
+
+- 경로:
+  - `POST /api/snapshots`
+  - `GET /api/snapshots/[snapshotId]`
+- 파일:
+  - `src/app/api/snapshots/route.ts`
+  - `src/app/api/snapshots/[snapshotId]/route.ts`
+- 동작:
+  - 상황추천/비교 상태를 TTL 포함 메모리 스냅샷으로 저장
+  - snapshot ID로 재조회해 공유 진입 시 상태 복원
 
 ---
 

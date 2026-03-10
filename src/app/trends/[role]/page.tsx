@@ -1,6 +1,10 @@
-import Link from "next/link";
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import AdSlot from "@/components/ad-slot";
+import PageVisitTracker from "@/components/page-visit-tracker";
 import ProgressBar from "@/components/progress-bar";
+import RelatedContentSection from "@/components/related-content-section";
+import TrackedLink from "@/components/tracked-link";
 import WatchlistToggle from "@/components/watchlist-toggle";
 import { getRoleTrendMetrics } from "@/lib/live-role-trends";
 import { roles, sourceNote, type RoleKey } from "@/lib/mvp-data";
@@ -58,6 +62,32 @@ type PageProps = {
 };
 
 /**
+ * 직무별 트렌드 페이지 메타데이터를 생성한다.
+ * @param params 동적 라우트 파라미터
+ * @returns 메타데이터
+ */
+export async function generateMetadata({ params }: Pick<PageProps, "params">): Promise<Metadata> {
+  const { role } = await params;
+  const roleKey = role as RoleKey;
+  const roleInfo = roles.find((item) => item.key === roleKey);
+
+  if (!roleInfo) {
+    return {
+      title: "트렌드",
+      description: "직무별 트렌드 데이터",
+    };
+  }
+
+  return {
+    title: `${roleInfo.name} 트렌드`,
+    description: `${roleInfo.name} 관점에서 채택률·성장률·수요지수를 확인하는 트렌드 페이지`,
+    alternates: {
+      canonical: `/trends/${roleKey}`,
+    },
+  };
+}
+
+/**
  * 직무별 트렌드 상세 페이지를 렌더링한다.
  * @param params 동적 라우트 파라미터
  * @param searchParams 쿼리 파라미터(topN)
@@ -102,6 +132,7 @@ export default async function TrendByRolePage({ params, searchParams }: PageProp
 
   return (
     <main className="container page">
+      <PageVisitTracker page="trends" meta={{ role: roleKey, topN, sortBy }} />
       <section className="card">
         <p className="eyebrow">직무별 트렌드</p>
         <h1>{roleInfo.name}</h1>
@@ -112,38 +143,49 @@ export default async function TrendByRolePage({ params, searchParams }: PageProp
         </div>
         <div className="role-switch mt-md">
           {roles.map((item) => (
-            <Link
+            <TrackedLink
               key={item.key}
               href={`/trends/${item.key}`}
               className={`role-pill ${item.key === roleKey ? "role-pill-active" : ""}`}
+              eventName="trend_click"
+              eventPage="trends"
+              eventMeta={{ role: item.key, cta: "role-switch" }}
             >
               {item.name}
-            </Link>
+            </TrackedLink>
           ))}
         </div>
         <div className="topn-switch mt-md">
           {[5, 8, 12].map((size) => (
-            <Link
+            <TrackedLink
               key={size}
               href={`/trends/${roleKey}?topN=${size}&sortBy=${sortBy}`}
               className={`role-pill ${topN === size ? "role-pill-active" : ""}`}
+              eventName="trend_click"
+              eventPage="trends"
+              eventMeta={{ role: roleKey, topN: size, cta: "topn-switch" }}
             >
               TOP {size}
-            </Link>
+            </TrackedLink>
           ))}
         </div>
         <div className="topn-switch mt-sm">
           {sortOptions.map((option) => (
-            <Link
+            <TrackedLink
               key={option.key}
               href={`/trends/${roleKey}?topN=${topN}&sortBy=${option.key}`}
               className={`role-pill ${sortBy === option.key ? "role-pill-active" : ""}`}
+              eventName="trend_click"
+              eventPage="trends"
+              eventMeta={{ role: roleKey, sortBy: option.key, cta: "sort-switch" }}
             >
               {option.label}
-            </Link>
+            </TrackedLink>
           ))}
         </div>
       </section>
+
+      <AdSlot slotId={`trends-inline-${roleKey}`} variant="inline" label="스폰서 리포트" />
 
       <section className="grid grid-3">
         <article className="card kpi">
@@ -244,15 +286,17 @@ export default async function TrendByRolePage({ params, searchParams }: PageProp
             최신 갱신: {new Date(trendResult.fetchedAt).toLocaleString("ko-KR")}
           </p>
         </div>
-        <Link href={`/scenarios/${roleKey}`} className="button button-primary">
+        <TrackedLink href={`/scenarios/${roleKey}`} className="button button-primary" eventName="scenario_click" eventPage="trends" eventMeta={{ role: roleKey, cta: "trends-to-scenarios" }}>
           <span className="button-icon" aria-hidden="true">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
               <path d="M12 4.5l1.9 3.8 4.2.6-3 2.9.7 4.2L12 14l-3.8 2 .7-4.2-3-2.9 4.2-.6L12 4.5z" />
             </svg>
           </span>
           이 직무 상황추천 보기
-        </Link>
+        </TrackedLink>
       </section>
+
+      <RelatedContentSection context={{ page: "trends", role: roleKey }} />
     </main>
   );
 }

@@ -1,5 +1,18 @@
-import Link from "next/link";
+import type { Metadata } from "next";
+import AdSlot from "@/components/ad-slot";
+import NewsletterCapture from "@/components/newsletter-capture";
+import PageVisitTracker from "@/components/page-visit-tracker";
+import RelatedContentSection from "@/components/related-content-section";
+import TrackedLink from "@/components/tracked-link";
 import { roles, sourceNote } from "@/lib/mvp-data";
+
+export const metadata: Metadata = {
+  title: "무료 직무별 도구 추천과 비교",
+  description: "트렌드·상황추천·비교를 한 번에 연결해 팀 도구 선택 근거를 빠르게 만드는 무료 플랫폼",
+  alternates: {
+    canonical: "/",
+  },
+};
 
 const heroTags = ["빠른 출시", "운영 안정성", "협업 효율", "비용 최적화"];
 
@@ -29,8 +42,23 @@ const faqItems = [
  * @returns 홈 화면 UI
  */
 export default function Home() {
+  const faqJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faqItems.map((item) => ({
+      "@type": "Question",
+      name: item.q,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: item.a,
+      },
+    })),
+  };
+
   return (
     <main className="container page">
+      <PageVisitTracker page="home" />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
       <section className="hero card hero-grid">
         <article>
           <p className="eyebrow">의사결정 중심 탐색 플랫폼</p>
@@ -39,7 +67,7 @@ export default function Home() {
             직무별 트렌드, 상황추천, 비교를 한 흐름으로 연결해 회의 전에 바로 공유 가능한 선택 근거를 만듭니다.
           </p>
           <div className="button-row">
-            <Link href="/roles" className="button button-primary">
+            <TrackedLink href="/roles" className="button button-primary" eventName="role_hub_click" eventPage="home" eventMeta={{ cta: "hero-primary" }}>
               <span className="button-icon" aria-hidden="true">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                   <circle cx="9" cy="8" r="2.5" />
@@ -48,15 +76,15 @@ export default function Home() {
                 </svg>
               </span>
               1분 시작하기
-            </Link>
-            <Link href="/scenarios/backend" className="button button-ghost">
+            </TrackedLink>
+            <TrackedLink href="/scenarios/backend" className="button button-ghost" eventName="scenario_click" eventPage="home" eventMeta={{ cta: "hero-secondary", role: "backend" }}>
               <span className="button-icon" aria-hidden="true">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M12 4.5l1.9 3.8 4.2.6-3 2.9.7 4.2L12 14l-3.8 2 .7-4.2-3-2.9 4.2-.6L12 4.5z" />
                 </svg>
               </span>
               바로 추천 받기
-            </Link>
+            </TrackedLink>
           </div>
           <div className="chip-row mt-md">
             {heroTags.map((tag) => (
@@ -74,9 +102,9 @@ export default function Home() {
             <li>상황추천에서 내 팀 조건으로 결과 재계산</li>
             <li>비교 화면에서 후보를 2~4개로 압축</li>
           </ul>
-          <Link href="/compare" className="text-link">
+          <TrackedLink href="/compare" className="text-link" eventName="compare_select" eventPage="home" eventMeta={{ cta: "flow-compare" }}>
             비교 페이지 보기
-          </Link>
+          </TrackedLink>
         </article>
       </section>
 
@@ -97,7 +125,7 @@ export default function Home() {
                 ))}
               </div>
               <div className="button-row">
-                <Link href={`/trends/${role.key}`} className="button button-ghost">
+                <TrackedLink href={`/trends/${role.key}`} className="button button-ghost" eventName="trend_click" eventPage="home" eventMeta={{ role: role.key, cta: "role-card-trends" }}>
                   <span className="button-icon" aria-hidden="true">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M4 19h16" />
@@ -107,20 +135,22 @@ export default function Home() {
                     </svg>
                   </span>
                   트렌드
-                </Link>
-                <Link href={`/scenarios/${role.key}`} className="button button-primary">
+                </TrackedLink>
+                <TrackedLink href={`/scenarios/${role.key}`} className="button button-primary" eventName="scenario_click" eventPage="home" eventMeta={{ role: role.key, cta: "role-card-scenarios" }}>
                   <span className="button-icon" aria-hidden="true">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M12 4.5l1.9 3.8 4.2.6-3 2.9.7 4.2L12 14l-3.8 2 .7-4.2-3-2.9 4.2-.6L12 4.5z" />
                     </svg>
                   </span>
                   상황추천
-                </Link>
+                </TrackedLink>
               </div>
             </article>
           ))}
         </div>
       </section>
+
+      <AdSlot slotId="home-inline-1" variant="inline" label="스폰서 가이드" />
 
       <section className="grid grid-2">
         <article className="card">
@@ -141,7 +171,7 @@ export default function Home() {
           <h2>월간 인사이트 구독</h2>
           <p className="muted readable">핵심 변화만 모은 인사이트 페이지를 먼저 보고, 필요하면 트렌드/비교로 내려가세요.</p>
           <div className="button-row">
-            <Link href="/insights" className="button button-primary">
+            <TrackedLink href="/insights" className="button button-primary" eventName="related_content_click" eventPage="home" eventMeta={{ target: "/insights", cta: "newsletter-insights" }}>
               <span className="button-icon" aria-hidden="true">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M12 4.8a5.5 5.5 0 0 0-3.3 9.9c.7.5 1.3 1.4 1.3 2.3h4c0-.9.6-1.8 1.3-2.3A5.5 5.5 0 0 0 12 4.8z" />
@@ -149,8 +179,8 @@ export default function Home() {
                 </svg>
               </span>
               인사이트 보기
-            </Link>
-            <Link href="/trends/backend" className="button button-ghost">
+            </TrackedLink>
+            <TrackedLink href="/trends/backend" className="button button-ghost" eventName="trend_click" eventPage="home" eventMeta={{ role: "backend", cta: "newsletter-trends" }}>
               <span className="button-icon" aria-hidden="true">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M4 19h16" />
@@ -160,9 +190,30 @@ export default function Home() {
                 </svg>
               </span>
               트렌드 보기
-            </Link>
+            </TrackedLink>
           </div>
+          <NewsletterCapture />
         </article>
+      </section>
+
+      <section className="card">
+        <p className="eyebrow">빠른 시작</p>
+        <h2>처음이라면 이렇게 시작하세요</h2>
+        <p className="muted readable">핵심 행동 3가지만 따라가면 3분 안에 공유 가능한 선택 근거를 만들 수 있습니다.</p>
+        <ol className="quick-start-list mt-sm">
+          <li>
+            <strong>직무 선택</strong>
+            <span className="muted">내 역할 기준의 후보를 먼저 좁힙니다.</span>
+          </li>
+          <li>
+            <strong>상황추천 계산</strong>
+            <span className="muted">팀 규모/일정/우선순위로 결과를 재계산합니다.</span>
+          </li>
+          <li>
+            <strong>비교 후 공유</strong>
+            <span className="muted">요약 문장을 복사해 팀 채널에 바로 공유합니다.</span>
+          </li>
+        </ol>
       </section>
 
       <section className="card">
@@ -177,6 +228,18 @@ export default function Home() {
           ))}
         </div>
       </section>
+
+      <section className="card split-note">
+        <div>
+          <h2>업데이트를 더 빠르게 받기</h2>
+          <p className="muted readable">브리핑 RSS를 구독하면 새 동향을 팀 채널/리더기로 바로 확인할 수 있습니다.</p>
+        </div>
+        <a href="/feed.xml" className="button button-ghost" target="_blank" rel="noreferrer">
+          RSS 피드 보기
+        </a>
+      </section>
+
+      <RelatedContentSection context={{ page: "home" }} />
     </main>
   );
 }

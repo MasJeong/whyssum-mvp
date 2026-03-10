@@ -3,8 +3,14 @@
 import { useEffect, useMemo, useState } from "react";
 import ProgressBar from "@/components/progress-bar";
 import WatchlistToggle from "@/components/watchlist-toggle";
+import { trackGrowthEvent } from "@/lib/growth-events";
+import { compareSharePayloadSchema, type CompareSharePayload } from "@/lib/share-snapshots";
 import { roles, trendData, type RoleKey } from "@/lib/mvp-data";
 import type { TrendMetric } from "@/lib/mvp-data";
+
+type CompareInteractiveProps = {
+  initialSnapshotId?: string;
+};
 
 /** 비교 테이블 한 행에 표시할 도구 지표 */
 type CompareItem = {
@@ -37,16 +43,45 @@ const defaultSelectedByRole: Record<RoleKey, string[]> = {
  * 직무별 후보를 선택해 핵심 지표를 나란히 비교하는 인터랙션 컴포넌트다.
  * @returns 비교 화면 본문
  */
-export default function CompareInteractive() {
+export default function CompareInteractive({ initialSnapshotId }: CompareInteractiveProps) {
   const [role, setRole] = useState<RoleKey>("backend");
   const [selected, setSelected] = useState<Set<string>>(new Set(defaultSelectedByRole.backend));
-  const [isAdvancedMode, setIsAdvancedMode] = useState(false);
-  const [selectionNotice, setSelectionNotice] = useState<string | null>(null);
   const [liveMetrics, setLiveMetrics] = useState<TrendMetric[] | null>(null);
   const [mode, setMode] = useState<"live" | "fallback" | "loading">("loading");
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [shareMessage, setShareMessage] = useState<string | null>(null);
 
-  const maxSelectable = isAdvancedMode ? 8 : 4;
+  useEffect(() => {
+    if (!initialSnapshotId) return;
+
+    let active = true;
+    const restoreSnapshot = async () => {
+      try {
+        const response = await fetch(`/api/snapshots/${initialSnapshotId}`, {
+          method: "GET",
+          headers: { Accept: "application/json" },
+          cache: "no-store",
+        });
+        const payload = (await response.json()) as { kind?: string; payload?: CompareSharePayload; error?: string };
+        if (!response.ok || payload.kind !== "compare" || !payload.payload) {
+          throw new Error(payload.error ?? "공유 비교 스냅샷을 불러오지 못했습니다.");
+        }
+        const parsed = compareSharePayloadSchema.parse(payload.payload);
+        if (!active) return;
+        setRole(parsed.role);
+        setSelected(new Set(parsed.selected));
+        setShareMessage("공유된 비교 상태를 불러왔습니다.");
+      } catch (error) {
+        if (!active) return;
+        setShareMessage(error instanceof Error ? error.message : "공유 상태를 불러오지 못했습니다.");
+      }
+    };
+
+    void restoreSnapshot();
+    return () => {
+      active = false;
+    };
+  }, [initialSnapshotId]);
 
   useEffect(() => {
     let active = true;
@@ -57,12 +92,14 @@ export default function CompareInteractive() {
     const fetchMetrics = async () => {
       setMode("loading");
       setLoadError(null);
+      
       try {
         const response = await fetch(`/api/trends/${role}`, {
           method: "GET",
           headers: { Accept: "application/json" },
           cache: "no-store",
         });
+
         const payload = (await response.json()) as {
           metrics?: TrendMetric[];
           mode?: "live" | "fallback";
@@ -121,7 +158,7 @@ export default function CompareInteractive() {
   const switchRole = (nextRole: RoleKey) => {
     setRole(nextRole);
     setSelected(new Set(defaultSelectedByRole[nextRole]));
-    setSelectionNotice(null);
+    void trackGrowthEvent({ name: "compare_select", page: "compare", meta: { action: "switch_role", role: nextRole } });
   };
 
   const selectedItems = useMemo(
@@ -158,47 +195,78 @@ export default function CompareInteractive() {
       const next = new Set(prev);
       if (next.has(name)) {
         if (next.size === 1) {
-          setSelectionNotice("최소 1개는 선택되어야 합니다.");
           return prev;
         }
         next.delete(name);
-        setSelectionNotice(null);
+        void trackGrowthEvent({ name: "compare_select", page: "compare", meta: { action: "remove", role, name } });
         return next;
       }
 
-      if (next.size >= maxSelectable) {
-        setSelectionNotice(
-          isAdvancedMode
-            ? "고급 모드에서는 최대 8개까지 선택할 수 있습니다."
-            : "기본 모드에서는 최대 4개까지 선택됩니다. 더 보려면 고급 모드를 켜세요.",
-        );
+      if (next.size >= 4) {
         return prev;
       }
 
       next.add(name);
-      setSelectionNotice(null);
+      void trackGrowthEvent({ name: "compare_select", page: "compare", meta: { action: "add", role, name } });
       return next;
     });
   };
 
   /**
-   * 비교 모드를 전환하고 선택 상한을 초과하면 최신 선택 기준으로 잘라낸다.
-   * @param nextAdvanced 전환할 고급 모드 여부
+   * 현재 비교 상태를 서버 스냅샷으로 저장하고 공유 링크를 만든다.
+   * @returns 공유 링크 또는 null
    */
-  const switchCompareMode = (nextAdvanced: boolean) => {
-    setIsAdvancedMode(nextAdvanced);
-    setSelected((prev) => {
-      const max = nextAdvanced ? 8 : 4;
-      if (prev.size <= max) {
-        return prev;
-      }
-      const trimmed = new Set(Array.from(prev).slice(0, max));
-      return trimmed;
+  const createSnapshotLink = async () => {
+    if (typeof window === "undefined") return null;
+
+    const response = await fetch("/api/snapshots", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Accept: "application/json" },
+      body: JSON.stringify({
+        kind: "compare",
+        payload: {
+          role,
+          selected: selectedItems.map((item) => item.name),
+        },
+      }),
     });
-    if (!nextAdvanced && selectedItems.length > 4) {
-      setSelectionNotice("기본 모드로 전환되어 선택 항목이 4개로 조정되었습니다.");
-    } else {
-      setSelectionNotice(null);
+    const payload = (await response.json()) as { snapshotId?: string; error?: string };
+    if (!response.ok || !payload.snapshotId) {
+      throw new Error(payload.error ?? "공유 링크 생성에 실패했습니다.");
+    }
+    return `${window.location.origin}/compare?snapshot=${encodeURIComponent(payload.snapshotId)}`;
+  };
+
+  /**
+   * 비교 화면 링크를 클립보드에 복사한다.
+   * @returns 없음
+   */
+  const copyCompareLink = async () => {
+    if (typeof window === "undefined") return;
+    try {
+      const shareLink = await createSnapshotLink();
+      if (!shareLink) return;
+      await navigator.clipboard.writeText(shareLink);
+      setShareMessage("비교 링크를 복사했습니다.");
+      void trackGrowthEvent({ name: "compare_share_link", page: "compare", meta: { role, selectedCount: selectedItems.length } });
+    } catch {
+      setShareMessage("링크 복사에 실패했습니다.");
+    }
+  };
+
+  /**
+   * 현재 비교 결과 핵심 문장을 클립보드에 복사한다.
+   * @returns 없음
+   */
+  const copyCompareSummary = async () => {
+    if (!bestCandidate) return;
+    const summary = `왜씀 비교 요약: ${roles.find((item) => item.key === role)?.name ?? role} 기준으로 ${bestCandidate.item.name}가 가장 균형적인 후보(${bestCandidate.overall}점)입니다.`;
+    try {
+      await navigator.clipboard.writeText(summary);
+      setShareMessage("비교 요약을 복사했습니다.");
+      void trackGrowthEvent({ name: "compare_share_summary", page: "compare", meta: { role, topTool: bestCandidate.item.name } });
+    } catch {
+      setShareMessage("요약 복사에 실패했습니다.");
     }
   };
 
@@ -217,39 +285,17 @@ export default function CompareInteractive() {
             </button>
           ))}
         </div>
-        <div className="topn-switch mt-md" role="tablist" aria-label="비교 모드 선택">
-          <button
-            type="button"
-            role="tab"
-            aria-selected={!isAdvancedMode}
-            className={`role-pill ${!isAdvancedMode ? "role-pill-active" : ""}`}
-            onClick={() => switchCompareMode(false)}
-          >
-            기본 모드 (최대 4개)
-          </button>
-          <button
-            type="button"
-            role="tab"
-            aria-selected={isAdvancedMode}
-            className={`role-pill ${isAdvancedMode ? "role-pill-active" : ""}`}
-            onClick={() => switchCompareMode(true)}
-          >
-            고급 모드 (최대 8개)
-          </button>
-        </div>
-        <h2>비교할 기술 선택 (최대 {maxSelectable}개)</h2>
-        <p className="inline-note mt-xs">현재 {selectedItems.length}/{maxSelectable}개 선택됨</p>
+        <h2>비교할 기술 선택 (최대 4개)</h2>
+        <p className="inline-note mt-xs">현재 {selectedItems.length}/4개 선택됨</p>
         <div className="checkbox-grid">
           {compareItems.map((item) => {
             const checked = selected.has(item.name);
-            const disabled = !checked && selected.size >= maxSelectable;
             return (
               <div key={item.name} className={`check-card ${checked ? "check-card-on" : ""}`}>
                 <input
                   id={`compare-${role}-${item.name}`}
                   type="checkbox"
                   checked={checked}
-                  disabled={disabled}
                   onChange={() => toggleSelection(item.name)}
                   aria-label={`${item.name} 비교 선택`}
                 />
@@ -260,11 +306,11 @@ export default function CompareInteractive() {
             );
           })}
         </div>
-        {selectionNotice ? <p className="inline-note mt-sm">{selectionNotice}</p> : null}
         <p className="inline-note mt-sm readable">
           현재 비교 기준: {roles.find((item) => item.key === role)?.name} · 데이터 모드: {mode.toUpperCase()}
         </p>
         {loadError ? <p className="error-text">{loadError} (샘플 데이터로 표시 중)</p> : null}
+        {shareMessage ? <p className="inline-note mt-xs">{shareMessage}</p> : null}
       </section>
 
       {bestCandidate ? (
@@ -277,9 +323,28 @@ export default function CompareInteractive() {
             <li>채택률·성장률·안정성·신뢰도를 함께 보되 비용 부담은 감점 반영합니다.</li>
             <li>실제 도입 전에는 러닝커브와 운영복잡도를 팀 역량과 함께 확인하세요.</li>
           </ul>
+          <div className="button-row mt-sm">
+            <button type="button" className="button button-ghost" onClick={() => void copyCompareLink()}>
+              비교 링크 복사
+            </button>
+            <button type="button" className="button button-ghost" onClick={() => void copyCompareSummary()}>
+              비교 요약 복사
+            </button>
+          </div>
         </section>
       ) : null}
 
+      {mode === "loading" ? (
+        <section className="card">
+          <div className="skeleton-line skeleton-w-sm" />
+          <div className="skeleton-line skeleton-w-lg mt-xs" />
+          <div className="skeleton-line skeleton-w-full mt-sm" />
+          <div className="skeleton-line skeleton-w-full mt-xs" />
+          <div className="skeleton-line skeleton-w-full mt-xs" />
+        </section>
+      ) : null}
+
+      {mode !== "loading" ? (
       <section className="card">
         <h2>비교 결과</h2>
         <div className="table-wrap">
@@ -328,6 +393,7 @@ export default function CompareInteractive() {
           </table>
         </div>
       </section>
+      ) : null}
     </>
   );
 }

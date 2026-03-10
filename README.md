@@ -14,14 +14,17 @@
 - 4개 API 라우트
   - `GET /api/recommendations`
   - `GET /api/trends/[role]`
-  - `GET/POST /api/trends/schedule`
   - `GET /api/briefings`
-- 트렌드 페이지 쿼리
-  - `topN`: 5/8/12 표시 개수 선택
-  - `sortBy`: `adoption | demand | growth | confidence` 정렬 기준 선택
-- 비교 페이지 모드
-  - 기본 모드: 최대 4개 선택
-  - 고급 모드: 최대 8개 선택
+  - `POST /api/subscribe`
+- 검색/배포 보조 라우트
+  - `GET /sitemap.xml`
+  - `GET /feed.xml`
+  - `GET /manifest.webmanifest`
+- 성장 측정/공유 라우트
+  - `POST /api/growth-events`
+  - `GET /api/growth-kpis`
+  - `POST /api/snapshots`
+  - `GET /api/snapshots/[snapshotId]`
 - 추천 결과에 `reasons`, `confidenceScore`, `trustLevel`, `whyNow`, `tradeoff`, `appliedRules` 포함
 
 ## 구현에서 신경 쓴 점
@@ -40,36 +43,57 @@
 
 - 트렌드 데이터는 GitHub 메타데이터를 기본으로 보고, npm/PyPI 신호를 보조로 사용합니다.
 - 외부 호출 실패 시 fallback 데이터를 반환하고, 응답에 `mode: live | fallback`를 포함합니다.
-- 트렌드 API는 `sortBy` 쿼리를 지원하며 잘못된 값은 `adoption`으로 안전 fallback합니다.
 
 관련 코드:
 - `src/lib/live-role-trends.ts`
 - `src/app/api/trends/[role]/route.ts`
 
-### 3) 브리핑 재방문 허브
-
-- 브리핑 화면은 필터 상태(`role`, `impact`, `periodDays`)를 로컬에 저장해 재방문 시 자동 복원합니다.
-- 상단 요약에서 High 영향도 건수/최근 7일 건수/추천 직무를 함께 보여줍니다.
-- 카드는 영향도 우선 정렬로 노출되며, 다음 행동(상황추천/트렌드/비교/원문) 순서로 의사결정 동선을 제공합니다.
-
-관련 코드:
-- `src/app/api/briefings/route.ts`
-- `src/components/briefing-board.tsx`
-
-### 4) 기본 보안/안정성
+### 3) 기본 보안/안정성
 
 - 입력 검증: Zod 스키마 검증
 - 요청 제한: IP 기준 인메모리 rate limit
 - 응답 헤더: `X-RateLimit-*` 헤더 통일
 - 미들웨어: CSP/HSTS/X-Frame-Options 등 기본 보안 헤더 적용
 - 에러 응답: 스택 트레이스 비노출
-- 트렌드 스케줄 갱신 API는 `TRENDS_CRON_SECRET` 설정 시 비밀키 검증 후 실행
+
+### 4) 유입/재방문 UX 강화
+
+- 홈 화면에 빠른 시작 체크리스트와 이메일 구독 폼을 추가했습니다.
+- 상황추천/비교 화면에서 공유 링크와 요약 문장 복사를 지원합니다.
+- 관심리스트는 JSON 내보내기/가져오기로 브라우저 간 이전이 가능해졌습니다.
+- 주요 데이터 화면(상황추천/비교/브리핑)에 스켈레톤 로딩 상태를 추가했습니다.
+
+### 5) 트래픽 성장/광고 준비 강화
+
+- 페이지별 메타데이터(`canonical`, route별 `title/description`)를 확장했습니다.
+- `FAQPage` JSON-LD, `sitemap.xml`, `robots.txt`의 sitemap 링크를 추가해 검색 노출 기반을 강화했습니다.
+- 브리핑 RSS(`feed.xml`)와 웹앱 매니페스트(`manifest.webmanifest`)를 추가했습니다.
+- CLS-safe 광고 슬롯 컴포넌트(`AdSlot`)와 광고/개인정보 안내 페이지를 추가했습니다.
+
+### 6) 성장 측정/공유 루프 강화
+
+- 공통 성장 이벤트 로거를 추가해 page view, CTA 클릭, 공유, 광고 노출/클릭, 재방문 배지 노출을 수집합니다.
+- `GET /api/growth-kpis`로 D1/D7/D30 KPI(activation/share/revisit/ad CTR/newsletter)를 집계할 수 있습니다.
+- 상황추천/비교 결과를 서버 스냅샷으로 저장하고 `snapshot` URL로 다시 열 수 있게 했습니다.
+- 주요 페이지에 관련 콘텐츠 섹션을 추가해 다음 행동 유도와 내부 링크 깊이를 강화했습니다.
 
 관련 코드:
 - `src/lib/security/validation.ts`
 - `src/lib/security/rate-limit.ts`
 - `src/app/api/recommendations/route.ts`
 - `src/app/api/briefings/route.ts`
+- `src/app/api/subscribe/route.ts`
+- `src/app/api/growth-events/route.ts`
+- `src/app/api/growth-kpis/route.ts`
+- `src/app/api/snapshots/route.ts`
+- `src/app/api/snapshots/[snapshotId]/route.ts`
+- `src/app/feed.xml/route.ts`
+- `src/lib/growth-events.ts`
+- `src/lib/growth-kpis.ts`
+- `src/lib/growth-store.ts`
+- `src/lib/ad-experiments.ts`
+- `src/lib/related-content.ts`
+- `src/lib/share-snapshots.ts`
 - `middleware.ts`
 
 ## 기술 스택

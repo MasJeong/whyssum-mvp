@@ -219,7 +219,7 @@
 ## 추가 반영 (색감/아이콘 체계 2차 정돈)
 
 - `src/app/globals.css`
-  - 신뢰 중심 톤에 맞춰 primary 버튼/모바일 CTA 그라디언트를 블루 중심으로 단순화
+  - 토스식 신뢰 톤에 맞춰 primary 버튼/모바일 CTA 그라디언트를 블루 중심으로 단순화
   - 신뢰도 배지 색상 토큰(`--trust-yellow`, `--trust-red`) 추가 및 일관 적용
   - 버튼/내비 공통 아이콘 슬롯(`.button-icon`)과 compact 버튼 유틸(`.button-compact`) 추가
 - `src/components/nav-links.tsx`, `src/components/mobile-bottom-nav.tsx`
@@ -228,67 +228,54 @@
   - 주요 CTA에 의미 기반 아이콘을 추가해 스캔 속도/행동 예측성 강화
   - 브리핑/시나리오의 인라인 스타일을 공통 유틸 클래스로 치환해 유지보수성 개선
 
-## 추가 반영 (브리핑 재방문 허브 고도화)
+## 추가 반영 (유입/재방문 루프 1차)
 
-- `review_docs/briefing-revisit-hub-implementation-plan.md`
-  - 브리핑 재방문 허브 고도화 계획 문서 추가
-- `src/app/api/briefings/route.ts`
-  - 응답에 요약 지표(`summary.highImpactCount`, `summary.recentCount7d`, `summary.recommendedRole`) 추가
+- `src/app/api/subscribe/route.ts`
+  - 이메일 구독 API 추가(요청 검증 + rate limit + 중복 구독 처리)
+- `src/lib/security/validation.ts`
+  - 구독 바디 검증 스키마(`subscribeBodySchema`) 및 파서 추가
+- `src/components/newsletter-capture.tsx`, `src/app/page.tsx`
+  - 홈 화면 구독 폼 + 빠른 시작 체크리스트 추가
+- `src/components/scenario-explorer.tsx`, `src/components/compare-interactive.tsx`
+  - 공유 링크 복사/요약 복사 액션 추가
+  - 로딩 시 스켈레톤 상태 추가
 - `src/components/briefing-board.tsx`
-  - 필터 상태 localStorage 복원/저장 추가
-  - 상단 핵심 요약 칩(High 영향도/최근 7일/추천 직무) 추가
-  - 카드 정렬을 영향도 우선(high > medium > low) + 최신순으로 조정
-  - 카드 액션 우선순위를 상황추천 중심으로 재배치
-  - 빈 결과에서 추천 필터 복구/기본값 초기화 액션 추가
-  - 경량 이벤트 로깅(`briefing_view`, `briefing_filter_change`, `briefing_card_action_click`, `briefing_empty_state_recover`) 추가
-- `README.md`, `review_docs/requirements.md`, `review_docs/cautions.md`
-  - 브리핑 재방문 허브 요구사항/주의사항/기능 설명 동기화
+  - 브리핑 로딩 스켈레톤 추가
+- `src/components/watchlist-view.tsx`
+  - 관심리스트 JSON 내보내기/가져오기 기능 추가
+- `src/app/globals.css`
+  - 구독 폼/빠른 시작/스켈레톤 공통 스타일 추가
 
-## 추가 반영 (트렌드 스케줄 업데이트)
+## 추가 반영 (트래픽 성장 + 광고 운영 준비)
 
-- `review_docs/trend-schedule-implementation-plan.md`
-  - 트렌드 스케줄 업데이트 구현 계획 문서 추가
-- `src/lib/live-role-trends.ts`
-  - 전체 직무 트렌드 일괄 갱신 함수(`refreshAllRoleTrendMetrics`) 추가
-- `src/app/api/trends/schedule/route.ts`
-  - 스케줄 상태 조회(`GET`) 및 강제 갱신 실행(`POST`) API 추가
-  - `TRENDS_CRON_SECRET` 기반 호출 보호 로직 추가
-- `README.md`, `review_docs/README.md`, `review_docs/requirements.md`, `review_docs/cautions.md`
-  - 스케줄 API 사용/주의사항/요구사항 문서 동기화
+- `src/app/layout.tsx`, `src/app/page.tsx`, `src/app/roles/page.tsx`, `src/app/compare/page.tsx`, `src/app/briefings/page.tsx`, `src/app/insights/page.tsx`, `src/app/trends/[role]/page.tsx`, `src/app/scenarios/[role]/page.tsx`
+  - 페이지별 SEO 메타 강화(canonical, title/description, 동적 메타)
+  - 홈 FAQ JSON-LD, RSS 진입, 관련 행동 유도 링크 확장
+  - 주요 화면에 광고 슬롯 컴포넌트 연결
+- `src/components/ad-slot.tsx`, `src/components/briefing-return-badge.tsx`
+  - CLS-safe 광고 슬롯 컴포넌트 추가
+  - 브리핑 재방문 시 신규 항목 배지 추가(localStorage 기반)
+- `src/app/sitemap.ts`, `src/app/manifest.ts`, `src/app/feed.xml/route.ts`, `src/app/robots.ts`
+  - sitemap/manifest/rss 라우트 추가
+  - robots에 sitemap 링크 및 공개 경로 확장
+- `src/app/advertising/page.tsx`, `src/app/privacy/page.tsx`
+  - 광고/개인정보 안내 페이지 신규 추가
+- `src/app/globals.css`
+  - 광고 슬롯 스타일 시스템 추가
 
-## 추가 반영 (트렌드 스케줄 운영 가이드)
+## 추가 반영 (성장 측정 + 공유 스냅샷 1차)
 
-- `review_docs/trend-schedule-cron-operations.md`
-  - 크론 연동 예시(GitHub Actions), 검증 시나리오, 운영 체크리스트 문서 추가
-
-## 추가 반영 (비교 고급 모드 4/8)
-
-- `review_docs/compare-advanced-mode-implementation-plan.md`
-  - 비교 기본/고급 모드 구현 계획 문서 추가
-- `src/components/compare-interactive.tsx`
-  - 비교 모드 토글(기본 4개/고급 8개) UI 추가
-  - 모드별 선택 상한 동적 적용 및 초과 선택 차단
-  - 모드 전환 시 안내 문구(selectionNotice) 추가
-  - 기본 모드 전환 시 초과 선택 자동 정리 로직 추가
-
-## 추가 반영 (브리핑 KPI 리포트 템플릿)
-
-- `review_docs/briefing-kpi-report-template.md`
-  - 브리핑 이벤트 기반 주간 KPI 집계 템플릿 추가
-- `review_docs/README.md`
-  - 신규 운영/계획/리포트 문서 인덱스 반영
-
-## 추가 반영 (트렌드 정렬 고도화)
-
-- `review_docs/trend-sorting-implementation-plan.md`
-  - 트렌드 정렬 기준 확장 계획 문서 추가
-- `src/app/api/trends/[role]/route.ts`
-  - `sortBy` 쿼리(`adoption | demand | growth | confidence`) 파싱/검증 로직 추가
-  - 정렬 기준별 서버 정렬 및 동률 시 기술명 안정 정렬 적용
-  - 응답에 `sortBy` 포함
-- `src/app/trends/[role]/page.tsx`
-  - 트렌드 목록 기본 정렬을 채택률 기준으로 변경
-  - 정렬 기준 pill UI(채택률/수요지수/성장률/신뢰도) 추가
-  - `topN`/`sortBy` 쿼리 동시 유지 링크 처리
-- `README.md`
-  - 트렌드 페이지 쿼리(`topN`, `sortBy`)와 정렬 fallback 정책 문서화
+- `src/lib/growth-events.ts`, `src/lib/growth-kpis.ts`, `src/lib/growth-store.ts`
+  - 성장 이벤트 택소노미, 로컬/서버 수집, KPI 집계 계약 추가
+- `src/app/api/growth-events/route.ts`, `src/app/api/growth-kpis/route.ts`
+  - 이벤트 수집 API 및 D1/D7/D30 KPI 리포트 API 추가
+- `src/lib/share-snapshots.ts`, `src/lib/share-snapshot-store.ts`, `src/app/api/snapshots/route.ts`, `src/app/api/snapshots/[snapshotId]/route.ts`
+  - 상황추천/비교 공유 스냅샷 저장/조회 API 추가
+- `src/lib/related-content.ts`, `src/components/related-content-section.tsx`
+  - 관련 콘텐츠 추천 로직 및 공통 섹션 추가
+- `src/components/tracked-link.tsx`, `src/components/page-visit-tracker.tsx`
+  - 주요 페이지/링크 클릭 계측 컴포넌트 추가
+- `src/components/scenario-explorer.tsx`, `src/components/compare-interactive.tsx`
+  - 스냅샷 공유 URL 생성/복원 및 핵심 이벤트 계측 반영
+- `src/app/page.tsx`, `src/app/roles/page.tsx`, `src/app/trends/[role]/page.tsx`, `src/app/scenarios/[role]/page.tsx`, `src/app/compare/page.tsx`, `src/app/briefings/page.tsx`, `src/app/insights/page.tsx`
+  - page_view/CTA 추적 및 관련 콘텐츠 섹션 연결

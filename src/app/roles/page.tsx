@@ -1,5 +1,17 @@
-import Link from "next/link";
+import type { Metadata } from "next";
+import AdSlot from "@/components/ad-slot";
+import PageVisitTracker from "@/components/page-visit-tracker";
+import RelatedContentSection from "@/components/related-content-section";
+import TrackedLink from "@/components/tracked-link";
 import { roles } from "@/lib/mvp-data";
+
+export const metadata: Metadata = {
+  title: "직무 선택 허브",
+  description: "백엔드·디자이너·PM 관점에서 트렌드와 상황추천 흐름을 시작하는 직무 허브",
+  alternates: {
+    canonical: "/roles",
+  },
+};
 
 /**
  * 직무 선택 허브 페이지를 렌더링한다.
@@ -8,6 +20,7 @@ import { roles } from "@/lib/mvp-data";
 export default function RolesPage() {
   return (
     <main className="container page">
+      <PageVisitTracker page="roles" />
       <section className="card">
         <p className="eyebrow">직무 허브</p>
         <h1>내 직무 기준으로 먼저 후보를 좁히세요</h1>
@@ -27,7 +40,7 @@ export default function RolesPage() {
               ))}
             </div>
             <div className="button-row">
-              <Link className="button button-ghost" href={`/trends/${role.key}`}>
+              <TrackedLink className="button button-ghost" href={`/trends/${role.key}`} eventName="trend_click" eventPage="roles" eventMeta={{ role: role.key }}>
                 <span className="button-icon" aria-hidden="true">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M4 19h16" />
@@ -37,26 +50,28 @@ export default function RolesPage() {
                   </svg>
                 </span>
                 트렌드
-              </Link>
-              <Link className="button button-primary" href={`/scenarios/${role.key}`}>
+              </TrackedLink>
+              <TrackedLink className="button button-primary" href={`/scenarios/${role.key}`} eventName="scenario_click" eventPage="roles" eventMeta={{ role: role.key }}>
                 <span className="button-icon" aria-hidden="true">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M12 4.5l1.9 3.8 4.2.6-3 2.9.7 4.2L12 14l-3.8 2 .7-4.2-3-2.9 4.2-.6L12 4.5z" />
                   </svg>
                 </span>
                 상황추천
-              </Link>
+              </TrackedLink>
             </div>
           </article>
         ))}
       </section>
+
+      <AdSlot slotId="roles-inline-1" variant="inline" label="스폰서 콘텐츠" />
 
       <section className="card split-note">
         <div>
           <h2>추천 흐름</h2>
           <p className="muted readable">1) 직무 선택 → 2) 트렌드 상위 확인 → 3) 상황추천에서 팀 조건 반영 → 4) 비교로 최종 결정</p>
         </div>
-        <Link href="/compare" className="button button-primary">
+        <TrackedLink href="/compare" className="button button-primary" eventName="compare_select" eventPage="roles" eventMeta={{ cta: "roles-summary" }}>
           <span className="button-icon" aria-hidden="true">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
               <rect x="5" y="6" width="5" height="12" rx="1.2" />
@@ -64,8 +79,10 @@ export default function RolesPage() {
             </svg>
           </span>
           비교 화면으로 이동
-        </Link>
+        </TrackedLink>
       </section>
+
+      <RelatedContentSection context={{ page: "roles" }} />
     </main>
   );
 }

@@ -767,6 +767,114 @@ li {
   background: #edf4ff;
 }
 
+.ad-slot {
+  border: 1px dashed color-mix(in srgb, var(--brand) 28%, var(--line));
+  border-radius: 14px;
+  padding: 0.72rem 0.8rem;
+  background: color-mix(in srgb, #f4f8ff 65%, #ffffff 35%);
+}
+
+.ad-slot-label {
+  margin: 0;
+  font-size: 0.74rem;
+  color: var(--text-quiet);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.ad-slot-body {
+  margin-top: 0.44rem;
+}
+
+.ad-slot-house {
+  min-height: 88px;
+  display: grid;
+  gap: 0.22rem;
+}
+
+.ad-slot-house strong {
+  font-size: 0.95rem;
+}
+
+.ad-slot-house p {
+  margin: 0;
+  color: var(--text-quiet);
+  font-size: 0.84rem;
+}
+
+.ad-slot-placeholder {
+  height: 88px;
+  border-radius: 10px;
+  background: linear-gradient(90deg, #e5edf9 20%, #f3f8ff 50%, #e5edf9 80%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.3s ease-in-out infinite;
+}
+
+.subscribe-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.5rem;
+  align-items: start;
+}
+
+.subscribe-form input {
+  width: 100%;
+  min-height: 46px;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--brand) 22%, var(--line));
+  padding: 0.55rem 0.62rem;
+  background: #fbfdff;
+  color: var(--foreground);
+  font: inherit;
+}
+
+.quick-start-list {
+  margin: 0;
+  padding-left: 1rem;
+  display: grid;
+  gap: 0.48rem;
+}
+
+.quick-start-list li {
+  display: grid;
+  gap: 0.12rem;
+}
+
+.skeleton-line {
+  height: 12px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #e5edf9 20%, #f3f8ff 50%, #e5edf9 80%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.3s ease-in-out infinite;
+}
+
+.skeleton-w-sm {
+  width: 38%;
+}
+
+.skeleton-w-md {
+  width: 62%;
+}
+
+.skeleton-w-lg {
+  width: 84%;
+}
+
+.skeleton-w-full {
+  width: 100%;
+}
+
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: 100% 0;
+  }
+
+  100% {
+    background-position: -100% 0;
+  }
+}
+
 .mobile-sticky-cta {
   display: none;
 }
@@ -811,6 +919,10 @@ li {
   }
 
   .split-note {
+    grid-template-columns: 1fr;
+  }
+
+  .subscribe-form {
     grid-template-columns: 1fr;
   }
 

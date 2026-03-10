@@ -2,6 +2,8 @@
 
 import { useEffect, useMemo, useState } from "react";
 import ProgressBar from "@/components/progress-bar";
+import { trackGrowthEvent } from "@/lib/growth-events";
+import { scenarioSharePayloadSchema, type ScenarioSharePayload } from "@/lib/share-snapshots";
 import { recommendations as fallbackRecommendations, scenarios, type Recommendation, type RoleKey } from "@/lib/mvp-data";
 
 /** 상황추천 탐색기 컴포넌트에 전달하는 props */
@@ -12,6 +14,7 @@ type ScenarioExplorerProps = {
     timeline?: string;
     priority?: string;
   };
+  initialSnapshotId?: string;
 };
 
 /** /api/recommendations 응답 JSON 형태 */
@@ -165,17 +168,6 @@ function createSnapshotId() {
   return `snapshot-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
-/**
- * 상황추천 화면의 사용자 행동 이벤트를 콘솔에 기록한다.
- * @param name 이벤트 이름
- * @param payload 이벤트 세부 속성
- * @returns 없음
- */
-function logScenarioEvent(name: string, payload: Record<string, string | number | boolean>) {
-  if (typeof window === "undefined") return;
-  console.info(`[scenario-event] ${name}`, payload);
-}
-
 const presetByRole: Record<RoleKey, { label: string; teamSize: string; timeline: string; priority: string }[]> = {
   backend: [
     { label: "1인 MVP", teamSize: "1~3명", timeline: "2개월", priority: "빠른 출시" },
@@ -197,7 +189,7 @@ const presetByRole: Record<RoleKey, { label: string; teamSize: string; timeline:
  * @param initialSelection URL 파라미터 기반 초기 필터 값
  * @returns 상황추천 인터랙션 UI
  */
-export default function ScenarioExplorer({ role, initialSelection }: ScenarioExplorerProps) {
+export default function ScenarioExplorer({ role, initialSelection, initialSnapshotId }: ScenarioExplorerProps) {
   const roleScenarios = useMemo(() => scenarios.filter((item) => item.role === role), [role]);
 
   const teamOptions = useMemo(
@@ -219,14 +211,45 @@ export default function ScenarioExplorer({ role, initialSelection }: ScenarioExp
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
+  const [shareMessage, setShareMessage] = useState<string | null>(null);
   const [appliedRules, setAppliedRules] = useState<string[]>([]);
   const [savedSnapshots, setSavedSnapshots] = useState<ScenarioSnapshot[]>([]);
   const [expandedCards, setExpandedCards] = useState<Record<string, boolean>>({});
-  const [showAllRecommendations, setShowAllRecommendations] = useState(false);
-  const [showTrustGuide, setShowTrustGuide] = useState(false);
   const [items, setItems] = useState<RecommendationItem[]>(fallbackRecommendations[role]);
   const topPick = items[0];
-  const visibleItems = showAllRecommendations ? items : items.slice(0, 3);
+
+  useEffect(() => {
+    if (!initialSnapshotId) return;
+
+    let active = true;
+    const restoreSnapshot = async () => {
+      try {
+        const response = await fetch(`/api/snapshots/${initialSnapshotId}`, {
+          method: "GET",
+          headers: { Accept: "application/json" },
+          cache: "no-store",
+        });
+        const payload = (await response.json()) as { kind?: string; payload?: ScenarioSharePayload; error?: string };
+        if (!response.ok || payload.kind !== "scenario" || !payload.payload) {
+          throw new Error(payload.error ?? "공유 추천 스냅샷을 불러오지 못했습니다.");
+        }
+        const parsed = scenarioSharePayloadSchema.parse(payload.payload);
+        if (!active || parsed.role !== role) return;
+        setTeamSize(parsed.teamSize);
+        setTimeline(parsed.timeline);
+        setPriority(parsed.priority);
+        setShareMessage("공유된 추천 조건을 불러왔습니다.");
+      } catch (error) {
+        if (!active) return;
+        setShareMessage(error instanceof Error ? error.message : "공유 상태를 불러오지 못했습니다.");
+      }
+    };
+
+    void restoreSnapshot();
+    return () => {
+      active = false;
+    };
+  }, [initialSnapshotId, role]);
 
   useEffect(() => {
     // 역할 전환 시 해당 역할의 마지막 선택값을 우선 복원하고,
@@ -263,9 +286,8 @@ export default function ScenarioExplorer({ role, initialSelection }: ScenarioExp
     setAppliedRules([]);
     setError(null);
     setSaveMessage(null);
+    setShareMessage(null);
     setExpandedCards({});
-    setShowAllRecommendations(false);
-    setShowTrustGuide(false);
     setSavedSnapshots(readSnapshotsByRole(role));
   }, [initialSelection?.priority, initialSelection?.teamSize, initialSelection?.timeline, priorityOptions, role, teamOptions, timelineOptions]);
 
@@ -309,6 +331,11 @@ export default function ScenarioExplorer({ role, initialSelection }: ScenarioExp
 
       setItems(payload.recommendations);
       setAppliedRules(payload.appliedRules ?? []);
+      void trackGrowthEvent({
+        name: "recommendation_recalculate",
+        page: "scenarios",
+        meta: { role, teamSize, timeline, priority, resultCount: payload.recommendations.length },
+      });
     } catch (fetchError) {
       setItems(fallbackRecommendations[role]);
       setAppliedRules([]);
@@ -422,13 +449,7 @@ export default function ScenarioExplorer({ role, initialSelection }: ScenarioExp
 
     writeAllScenarioSnapshots(nextAll);
     setSavedSnapshots(readSnapshotsByRole(role));
-    logScenarioEvent("scenario_snapshot_save", {
-      role,
-      teamSize,
-      timeline,
-      priority,
-      duplicate: Boolean(duplicated),
-    });
+    void trackGrowthEvent({ name: "recommendation_snapshot_save", page: "scenarios", meta: { role, teamSize, timeline, priority } });
   };
 
   /**
@@ -441,12 +462,6 @@ export default function ScenarioExplorer({ role, initialSelection }: ScenarioExp
     setTimeline(snapshot.timeline);
     setPriority(snapshot.priority);
     setSaveMessage("저장된 조건을 불러왔습니다.");
-    logScenarioEvent("scenario_snapshot_apply", {
-      role,
-      teamSize: snapshot.teamSize,
-      timeline: snapshot.timeline,
-      priority: snapshot.priority,
-    });
   };
 
   /**
@@ -478,18 +493,55 @@ export default function ScenarioExplorer({ role, initialSelection }: ScenarioExp
    * @returns 없음
    */
   const toggleCardDetail = (cardKey: string) => {
-    setExpandedCards((prev) => {
-      const nextOpen = !prev[cardKey];
-      logScenarioEvent("scenario_recommendation_expand", {
-        role,
-        cardKey,
-        expanded: nextOpen,
+    setExpandedCards((prev) => ({
+      ...prev,
+      [cardKey]: !prev[cardKey],
+    }));
+  };
+
+  /**
+   * 현재 화면 URL을 클립보드에 복사한다.
+   * @returns 없음
+   */
+  const copyShareLink = async () => {
+    if (typeof window === "undefined") return;
+    const link = window.location.href;
+    try {
+      const response = await fetch("/api/snapshots", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify({
+          kind: "scenario",
+          payload: { role, teamSize, timeline, priority },
+        }),
       });
-      return {
-        ...prev,
-        [cardKey]: nextOpen,
-      };
-    });
+      const payload = (await response.json()) as { snapshotId?: string; error?: string };
+      if (!response.ok || !payload.snapshotId) {
+        throw new Error(payload.error ?? "공유 링크 생성에 실패했습니다.");
+      }
+      const shareLink = `${window.location.origin}/scenarios/${role}?snapshot=${encodeURIComponent(payload.snapshotId)}`;
+      await navigator.clipboard.writeText(shareLink || link);
+      setShareMessage("공유 링크를 복사했습니다.");
+      void trackGrowthEvent({ name: "recommendation_share_link", page: "scenarios", meta: { role, teamSize, timeline, priority } });
+    } catch {
+      setShareMessage("링크 복사에 실패했습니다. 브라우저 주소창에서 직접 복사해 주세요.");
+    }
+  };
+
+  /**
+   * 현재 1순위 추천 요약 문장을 클립보드에 복사한다.
+   * @returns 없음
+   */
+  const copyTopPickSummary = async () => {
+    if (!topPick || typeof window === "undefined") return;
+    const summary = `왜씀 추천 요약: ${role} 직무에서 ${topPick.label} (${topPick.stack})가 1순위이며 적합도는 ${topPick.fitScore}점입니다. 조건: ${teamSize || "-"} · ${timeline || "-"} · ${priority || "-"}`;
+    try {
+      await navigator.clipboard.writeText(summary);
+      setShareMessage("추천 요약을 복사했습니다.");
+      void trackGrowthEvent({ name: "recommendation_share_summary", page: "scenarios", meta: { role, label: topPick.label, stack: topPick.stack } });
+    } catch {
+      setShareMessage("요약 복사에 실패했습니다.");
+    }
   };
 
   /**
@@ -595,30 +647,6 @@ export default function ScenarioExplorer({ role, initialSelection }: ScenarioExp
       <section className="card">
         <h2>조건 기반 추천</h2>
         <p className="muted">팀 규모, 일정, 우선순위를 선택하면 추천안을 다시 계산합니다.</p>
-        <div className="button-row mt-xs">
-          <button
-            type="button"
-            className="button button-ghost button-compact"
-            onClick={() => {
-              setShowTrustGuide((prev) => {
-                const next = !prev;
-                if (next) {
-                  logScenarioEvent("trust_help_open", { role, surface: "scenario" });
-                }
-                return next;
-              });
-            }}
-            aria-expanded={showTrustGuide}
-            aria-controls="scenario-trust-guide"
-          >
-            신뢰도 기준 보기
-          </button>
-        </div>
-        {showTrustGuide ? (
-          <p id="scenario-trust-guide" className="inline-note mt-xs">
-            신뢰도 점수는 적합도, 조건 근거 개수, 직무 트렌드 신호를 합성한 휴리스틱 지표입니다.
-          </p>
-        ) : null}
         <div className="chip-row mt-sm">
           {presetByRole[role].map((preset) => (
             <button
@@ -693,6 +721,11 @@ export default function ScenarioExplorer({ role, initialSelection }: ScenarioExp
             {saveMessage}
           </p>
         ) : null}
+        {shareMessage ? (
+          <p className="inline-note mt-xs">
+            {shareMessage}
+          </p>
+        ) : null}
         {appliedRules.length > 0 ? (
           <p className="inline-note mt-xs">
             적용 조건: {appliedRules.join(" / ")}
@@ -754,39 +787,35 @@ export default function ScenarioExplorer({ role, initialSelection }: ScenarioExp
             <li>자세히 보기를 열면 점수 구조와 실행 체크리스트를 바로 확인할 수 있습니다.</li>
             <li>결정이 애매하면 비교 화면에서 후보 2~4개를 나란히 확인하세요.</li>
           </ul>
-        </section>
-      ) : null}
-
-      {items.length > 3 ? (
-        <section className="card">
-          <div className="split-note">
-            <p className="list-title no-margin">
-              추천 {items.length}개 중 {showAllRecommendations ? "전체" : "상위 3개"} 표시
-            </p>
-            <button
-              type="button"
-              className="button button-ghost"
-              onClick={() => {
-                setShowAllRecommendations((prev) => {
-                  const next = !prev;
-                  logScenarioEvent("scenario_show_all_toggle", {
-                    role,
-                    showAll: next,
-                    recommendationCount: items.length,
-                  });
-                  return next;
-                });
-              }}
-            >
-              {showAllRecommendations ? "상위 3개만 보기" : "전체 추천 보기"}
+          <div className="button-row mt-sm">
+            <button type="button" className="button button-ghost" onClick={() => void copyShareLink()}>
+              공유 링크 복사
+            </button>
+            <button type="button" className="button button-ghost" onClick={() => void copyTopPickSummary()}>
+              추천 요약 복사
             </button>
           </div>
         </section>
       ) : null}
 
-      <section className="grid grid-3">
-        {visibleItems.map((pick, index) => (
-          <article className="card" key={`${pick.label}-${pick.stack}-${index}`}>
+      {loading ? (
+        <section className="grid grid-3">
+          {[1, 2, 3].map((idx) => (
+            <article className="card" key={`scenario-skeleton-${idx}`}>
+              <div className="skeleton-line skeleton-w-sm" />
+              <div className="skeleton-line skeleton-w-lg mt-xs" />
+              <div className="skeleton-line skeleton-w-md mt-sm" />
+              <div className="skeleton-line skeleton-w-lg mt-xs" />
+              <div className="skeleton-line skeleton-w-full mt-sm" />
+            </article>
+          ))}
+        </section>
+      ) : null}
+
+      {!loading ? (
+        <section className="grid grid-3">
+          {items.map((pick, index) => (
+          <article className="card" key={`${pick.stack}-${pick.label}-${index}`}>
             <p className="eyebrow">{index + 1}순위 · {pick.label}</p>
             <h2>{pick.stack}</h2>
             {(() => {
@@ -932,8 +961,9 @@ export default function ScenarioExplorer({ role, initialSelection }: ScenarioExp
               );
             })()}
           </article>
-        ))}
-      </section>
+          ))}
+        </section>
+      ) : null}
     </>
   );
 }

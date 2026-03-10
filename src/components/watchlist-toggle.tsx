@@ -1,6 +1,7 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
+import { trackGrowthEvent } from "@/lib/growth-events";
 
 const STORAGE_KEY = "whyssum:watchlist";
 const WATCHLIST_CHANGED_EVENT = "whyssum:watchlist-changed";
@@ -80,17 +81,6 @@ function getWatchlistServerSnapshot() {
   return [] as string[];
 }
 
-/**
- * 관심리스트 토글 이벤트를 콘솔에 기록한다.
- * @param name 이벤트 이름
- * @param payload 이벤트 상세 속성
- * @returns 없음
- */
-function logWatchlistEvent(name: string, payload: Record<string, string | number | boolean>) {
-  if (typeof window === "undefined") return;
-  console.info(`[watchlist-event] ${name}`, payload);
-}
-
 /** 관심리스트 토글 버튼 props */
 type WatchlistToggleProps = {
   itemKey: string;
@@ -115,13 +105,13 @@ export default function WatchlistToggle({ itemKey, label }: WatchlistToggleProps
     if (watchlist.includes(itemKey)) {
       const next = watchlist.filter((item) => item !== itemKey);
       writeWatchlist(next);
-      logWatchlistEvent("watchlist_remove", { source: "toggle", itemKey, label });
+      void trackGrowthEvent({ name: "watchlist_remove", page: "watchlist-toggle", meta: { source: "toggle", itemKey, label } });
       return;
     }
 
     const next = Array.from(new Set([...watchlist, itemKey]));
     writeWatchlist(next);
-    logWatchlistEvent("watchlist_add", { source: "toggle", itemKey, label });
+    void trackGrowthEvent({ name: "watchlist_add", page: "watchlist-toggle", meta: { source: "toggle", itemKey, label } });
   };
 
   return (

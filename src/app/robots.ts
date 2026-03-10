@@ -8,8 +8,9 @@ export default function robots(): MetadataRoute.Robots {
   return {
     rules: {
       userAgent: "*",
-      allow: ["/", "/roles", "/trends/", "/scenarios/", "/compare", "/briefings", "/insights"],
+      allow: ["/", "/roles", "/trends/", "/scenarios/", "/compare", "/briefings", "/insights", "/feed.xml", "/advertising", "/privacy"],
       disallow: ["/api/", "/watchlist"],
     },
+    sitemap: `${process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"}/sitemap.xml`,
   };
 }

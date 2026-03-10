@@ -5,9 +5,31 @@ import MobileBottomNav from "@/components/mobile-bottom-nav";
 import MobileStickyCta from "@/components/mobile-sticky-cta";
 import NavLinks from "@/components/nav-links";
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+
 export const metadata: Metadata = {
-  title: "왜씀?",
-  description: "직무별 도구 선택의 이유를 보여주는 가벼운 데이터 플랫폼",
+  metadataBase: new URL(siteUrl),
+  title: {
+    default: "왜씀? | 직무별 도구 선택 근거 플랫폼",
+    template: "%s | 왜씀?",
+  },
+  description: "직무별 트렌드·상황추천·비교를 연결해 팀 의사결정 시간을 줄이는 무료 데이터 플랫폼",
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    type: "website",
+    locale: "ko_KR",
+    url: "/",
+    siteName: "왜씀?",
+    title: "왜씀? | 직무별 도구 선택 근거 플랫폼",
+    description: "직무별 트렌드·상황추천·비교를 연결해 팀 의사결정 시간을 줄이는 무료 데이터 플랫폼",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "왜씀? | 직무별 도구 선택 근거 플랫폼",
+    description: "직무별 트렌드·상황추천·비교를 연결해 팀 의사결정 시간을 줄이는 무료 데이터 플랫폼",
+  },
 };
 
 /**
@@ -46,6 +68,9 @@ export default function RootLayout({
               <Link href="/scenarios/backend">상황추천</Link>
               <Link href="/watchlist">관심리스트</Link>
               <Link href="/insights">인사이트</Link>
+              <Link href="/feed.xml">RSS</Link>
+              <Link href="/advertising">광고 안내</Link>
+              <Link href="/privacy">개인정보 안내</Link>
             </div>
           </div>
         </footer>
