@@ -16,6 +16,9 @@
 - `trend-schedule-implementation-plan.md`: 트렌드 스케줄 업데이트 구현 계획서
 - `trend-schedule-cron-operations.md`: 트렌드 스케줄 크론 운영/검증 가이드
 - `react-next-onboarding.md`: React/Next 구조와 추천 흐름 온보딩 가이드
+- `restore-volume-stress-checklist.md`: 복원/볼륨제어 스트레스 검증 시나리오
+- `trust-freshness-copy-guide.md`: 신뢰도/신선도 문구 정렬 가이드
+- `commit-unit-guideline.md`: 커밋 작업 단위 운영 기준
 
 ## 운영 기록 규칙
 
