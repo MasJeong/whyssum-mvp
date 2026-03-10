@@ -12,6 +12,14 @@ type ApiResponse = {
   error?: string;
 };
 
+type StoredFilters = {
+  role: string;
+  impact: string;
+  periodDays: number;
+};
+
+const briefingFilterStorageKey = "whyssum:briefing:lastFilters";
+
 const roleOptions = [
   { value: "all", label: "전체" },
   { value: "backend", label: "백엔드" },
@@ -51,6 +59,31 @@ export default function BriefingBoard() {
   const [fetchedAt, setFetchedAt] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(briefingFilterStorageKey);
+      if (!raw) return;
+      const parsed = JSON.parse(raw) as StoredFilters;
+      if (typeof parsed.role === "string") setRole(parsed.role);
+      if (typeof parsed.impact === "string") setImpact(parsed.impact);
+      if (typeof parsed.periodDays === "number") setPeriodDays(parsed.periodDays);
+    } catch {
+      return;
+    }
+  }, []);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      try {
+        localStorage.setItem(briefingFilterStorageKey, JSON.stringify({ role, impact, periodDays }));
+      } catch {
+        return;
+      }
+    }, 120);
+
+    return () => window.clearTimeout(timer);
+  }, [impact, periodDays, role]);
 
   useEffect(() => {
     let active = true;

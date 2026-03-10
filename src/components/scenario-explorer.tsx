@@ -216,7 +216,10 @@ export default function ScenarioExplorer({ role, initialSelection, initialSnapsh
   const [savedSnapshots, setSavedSnapshots] = useState<ScenarioSnapshot[]>([]);
   const [expandedCards, setExpandedCards] = useState<Record<string, boolean>>({});
   const [items, setItems] = useState<RecommendationItem[]>(fallbackRecommendations[role]);
+  const [showAllRecommendations, setShowAllRecommendations] = useState(false);
+  const [isTrustHelpOpen, setIsTrustHelpOpen] = useState(false);
   const topPick = items[0];
+  const visibleItems = showAllRecommendations ? items : items.slice(0, 3);
 
   useEffect(() => {
     if (!initialSnapshotId) return;
@@ -238,6 +241,17 @@ export default function ScenarioExplorer({ role, initialSelection, initialSnapsh
         setTeamSize(parsed.teamSize);
         setTimeline(parsed.timeline);
         setPriority(parsed.priority);
+        void trackGrowthEvent({
+          name: "scenario_snapshot_apply",
+          page: "scenarios",
+          meta: {
+            role,
+            surface: "shared-link",
+            teamSize: parsed.teamSize,
+            timeline: parsed.timeline,
+            priority: parsed.priority,
+          },
+        });
         setShareMessage("공유된 추천 조건을 불러왔습니다.");
       } catch (error) {
         if (!active) return;
@@ -288,6 +302,8 @@ export default function ScenarioExplorer({ role, initialSelection, initialSnapsh
     setSaveMessage(null);
     setShareMessage(null);
     setExpandedCards({});
+    setShowAllRecommendations(false);
+    setIsTrustHelpOpen(false);
     setSavedSnapshots(readSnapshotsByRole(role));
   }, [initialSelection?.priority, initialSelection?.teamSize, initialSelection?.timeline, priorityOptions, role, teamOptions, timelineOptions]);
 
@@ -449,6 +465,11 @@ export default function ScenarioExplorer({ role, initialSelection, initialSnapsh
 
     writeAllScenarioSnapshots(nextAll);
     setSavedSnapshots(readSnapshotsByRole(role));
+    void trackGrowthEvent({
+      name: "scenario_snapshot_save",
+      page: "scenarios",
+      meta: { role, surface: "local-storage", teamSize, timeline, priority },
+    });
     void trackGrowthEvent({ name: "recommendation_snapshot_save", page: "scenarios", meta: { role, teamSize, timeline, priority } });
   };
 
@@ -461,6 +482,17 @@ export default function ScenarioExplorer({ role, initialSelection, initialSnapsh
     setTeamSize(snapshot.teamSize);
     setTimeline(snapshot.timeline);
     setPriority(snapshot.priority);
+    void trackGrowthEvent({
+      name: "scenario_snapshot_apply",
+      page: "scenarios",
+      meta: {
+        role,
+        surface: "saved-snapshot",
+        teamSize: snapshot.teamSize,
+        timeline: snapshot.timeline,
+        priority: snapshot.priority,
+      },
+    });
     setSaveMessage("저장된 조건을 불러왔습니다.");
   };
 
@@ -493,10 +525,55 @@ export default function ScenarioExplorer({ role, initialSelection, initialSnapsh
    * @returns 없음
    */
   const toggleCardDetail = (cardKey: string) => {
-    setExpandedCards((prev) => ({
-      ...prev,
-      [cardKey]: !prev[cardKey],
-    }));
+    setExpandedCards((prev) => {
+      const nextExpanded = !prev[cardKey];
+      if (nextExpanded) {
+        void trackGrowthEvent({
+          name: "scenario_recommendation_expand",
+          page: "scenarios",
+          meta: { role, surface: "card-detail", cardKey },
+        });
+      }
+
+      return {
+        ...prev,
+        [cardKey]: nextExpanded,
+      };
+    });
+  };
+
+  /**
+   * 추천 카드 표시 범위를 상위 3개/전체로 토글하고 계측 이벤트를 기록한다.
+   * @returns 없음
+   */
+  const toggleShowAllRecommendations = () => {
+    setShowAllRecommendations((prev) => {
+      const next = !prev;
+      void trackGrowthEvent({
+        name: "scenario_show_all_toggle",
+        page: "scenarios",
+        meta: { role, surface: "result-grid", showAll: next, visibleCount: next ? items.length : Math.min(3, items.length) },
+      });
+      return next;
+    });
+  };
+
+  /**
+   * 신뢰도 해석 가이드를 열고 닫는다.
+   * @returns 없음
+   */
+  const toggleTrustHelp = () => {
+    setIsTrustHelpOpen((prev) => {
+      const next = !prev;
+      if (next) {
+        void trackGrowthEvent({
+          name: "trust_help_open",
+          page: "scenarios",
+          meta: { role, surface: "trust-help" },
+        });
+      }
+      return next;
+    });
   };
 
   /**
@@ -715,6 +792,17 @@ export default function ScenarioExplorer({ role, initialSelection, initialSnapsh
           </button>
           <span className="inline-note">API rate limit: 분당 30회</span>
         </div>
+        <div className="button-row mt-xs">
+          <button type="button" className="button button-ghost" onClick={toggleTrustHelp} aria-expanded={isTrustHelpOpen}>
+            {isTrustHelpOpen ? "신뢰도 안내 닫기" : "신뢰도 계산 안내"}
+          </button>
+        </div>
+        {isTrustHelpOpen ? (
+          <p className="inline-note mt-xs">
+            신뢰도 점수는 적합도, 조건 매칭 근거, 트렌드 신호를 합성한 휴리스틱 지표입니다. live/fallback은 데이터 수집 상태를 의미하며
+            추천의 절대 정확도를 보장하지 않습니다.
+          </p>
+        ) : null}
         {error ? <p className="error-text">{error} (기본 추천안으로 표시 중)</p> : null}
         {saveMessage ? (
           <p className="inline-note mt-xs">
@@ -814,7 +902,7 @@ export default function ScenarioExplorer({ role, initialSelection, initialSnapsh
 
       {!loading ? (
         <section className="grid grid-3">
-          {items.map((pick, index) => (
+          {visibleItems.map((pick, index) => (
           <article className="card" key={`${pick.stack}-${pick.label}-${index}`}>
             <p className="eyebrow">{index + 1}순위 · {pick.label}</p>
             <h2>{pick.stack}</h2>
@@ -963,6 +1051,13 @@ export default function ScenarioExplorer({ role, initialSelection, initialSnapsh
           </article>
           ))}
         </section>
+      ) : null}
+      {!loading && items.length > 3 ? (
+        <div className="button-row mt-sm">
+          <button type="button" className="button button-ghost" onClick={toggleShowAllRecommendations}>
+            {showAllRecommendations ? "상위 3개만 보기" : `전체 보기 (${items.length}개)`}
+          </button>
+        </div>
       ) : null}
     </>
   );

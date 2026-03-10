@@ -2,11 +2,23 @@
 
 import Link from "next/link";
 import { useMemo, useRef, useState, useSyncExternalStore } from "react";
+import { trackGrowthEvent } from "@/lib/growth-events";
+import type { RoleKey } from "@/lib/mvp-data";
 
 const STORAGE_KEY = "whyssum:watchlist";
 const WATCHLIST_CHANGED_EVENT = "whyssum:watchlist-changed";
 let cachedWatchlistRaw: string | null = null;
 let cachedWatchlist: string[] = [];
+
+/**
+ * 문자열 역할값을 앱에서 사용하는 RoleKey로 정규화한다.
+ * @param value 원본 역할 문자열
+ * @returns 유효한 역할 키 또는 기본값
+ */
+function normalizeRole(value: string): RoleKey {
+  if (value === "backend" || value === "designer" || value === "pm") return value;
+  return "backend";
+}
 
 /**
  * 로컬 저장소에서 관심리스트를 읽고 문자열 항목만 안전하게 반환한다.
@@ -94,9 +106,10 @@ export default function WatchlistView() {
     () =>
       items.map((item) => {
         const [role, ...toolTokens] = item.split(":");
+        const normalizedRole = normalizeRole(role);
         return {
           key: item,
-          role,
+          role: normalizedRole,
           tool: toolTokens.join(":") || item,
         };
       }),
@@ -111,6 +124,21 @@ export default function WatchlistView() {
   const removeItem = (key: string) => {
     const next = items.filter((item) => item !== key);
     writeWatchlist(next);
+  };
+
+  /**
+   * 관심리스트 카드의 다음 행동 CTA 클릭을 기록한다.
+   * @param action CTA 종류
+   * @param role 클릭한 항목의 직무
+   * @param tool 클릭한 항목의 도구명
+   * @returns 없음
+   */
+  const trackWatchlistCtaClick = (action: "compare" | "scenario", role: RoleKey, tool: string) => {
+    void trackGrowthEvent({
+      name: "watchlist_cta_click",
+      page: "watchlist",
+      meta: { surface: "watchlist-card", role, action, tool },
+    });
   };
 
   /**
@@ -258,6 +286,24 @@ export default function WatchlistView() {
             <p className="eyebrow">{item.role}</p>
             <h2>{item.tool}</h2>
             <div className="button-row">
+              <Link
+                href={`/scenarios/${item.role}`}
+                className="button button-primary"
+                onClick={() => {
+                  trackWatchlistCtaClick("scenario", item.role, item.tool);
+                }}
+              >
+                상황추천으로 이동
+              </Link>
+              <Link
+                href={`/compare?role=${item.role}&seed=${encodeURIComponent(item.tool)}`}
+                className="button button-ghost"
+                onClick={() => {
+                  trackWatchlistCtaClick("compare", item.role, item.tool);
+                }}
+              >
+                비교로 이동
+              </Link>
               <Link href={`/trends/${item.role}`} className="button button-primary">
                 트렌드 보기
               </Link>
