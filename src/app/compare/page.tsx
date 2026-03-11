@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import AdSlot from "@/components/ad-slot";
 import CompareInteractive from "@/components/compare-interactive";
+import PageReturnBadge from "@/components/page-return-badge";
 import PageVisitTracker from "@/components/page-visit-tracker";
 import RelatedContentSection from "@/components/related-content-section";
 import { trendData } from "@/lib/mvp-data";
@@ -34,6 +35,7 @@ export default async function ComparePage({ searchParams }: ComparePageProps) {
         <p className="eyebrow">비교</p>
         <h1>같은 상황에서 무엇이 더 맞는지 비교</h1>
         <p className="muted readable">직무를 바꿔가며 기술/도구 후보를 직접 선택해 비교할 수 있습니다.</p>
+        <PageReturnBadge page="compare" label="비교" />
       </section>
 
       <CompareInteractive initialSnapshotId={query.snapshot} />

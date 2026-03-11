@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import AdSlot from "@/components/ad-slot";
 import NewsletterCapture from "@/components/newsletter-capture";
+import PageReturnBadge from "@/components/page-return-badge";
 import PageVisitTracker from "@/components/page-visit-tracker";
 import RelatedContentSection from "@/components/related-content-section";
 import TrackedLink from "@/components/tracked-link";
@@ -66,6 +67,7 @@ export default function Home() {
           <p className="muted readable">
             직무별 트렌드, 상황추천, 비교를 한 흐름으로 연결해 회의 전에 바로 공유 가능한 선택 근거를 만듭니다.
           </p>
+          <PageReturnBadge page="home" label="홈" />
           <div className="button-row">
             <TrackedLink href="/roles" className="button button-primary" eventName="role_hub_click" eventPage="home" eventMeta={{ cta: "hero-primary" }}>
               <span className="button-icon" aria-hidden="true">
@@ -240,6 +242,16 @@ export default function Home() {
       </section>
 
       <RelatedContentSection context={{ page: "home" }} />
+
+      <section className="card split-note">
+        <div>
+          <h2>운영 지표도 바로 보기</h2>
+          <p className="muted readable">최근 D1/D7/D30 기준으로 활성화율, 공유율, 재방문율을 한 번에 확인할 수 있습니다.</p>
+        </div>
+        <a href="/growth" className="button button-ghost">
+          성장 대시보드
+        </a>
+      </section>
     </main>
   );
 }

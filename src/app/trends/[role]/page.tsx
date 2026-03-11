@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import AdSlot from "@/components/ad-slot";
+import PageReturnBadge from "@/components/page-return-badge";
 import PageVisitTracker from "@/components/page-visit-tracker";
 import ProgressBar from "@/components/progress-bar";
 import RelatedContentSection from "@/components/related-content-section";
@@ -137,6 +138,7 @@ export default async function TrendByRolePage({ params, searchParams }: PageProp
         <p className="eyebrow">직무별 트렌드</p>
         <h1>{roleInfo.name}</h1>
         <p className="muted readable">{roleInfo.oneLiner}</p>
+        <PageReturnBadge page={`trends-${roleKey}`} label={`${roleInfo.name} 트렌드`} />
         <div className="chip-row mt-sm">
           <span className="chip">데이터 신뢰 상태: {trendResult.mode === "live" ? "실시간 수집" : "안정 모드"}</span>
           <span className="chip">소스: {trendResult.source}</span>

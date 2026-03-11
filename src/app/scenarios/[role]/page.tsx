@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import AdSlot from "@/components/ad-slot";
+import PageReturnBadge from "@/components/page-return-badge";
 import PageVisitTracker from "@/components/page-visit-tracker";
 import RelatedContentSection from "@/components/related-content-section";
 import ScenarioExplorer from "@/components/scenario-explorer";
@@ -63,6 +64,7 @@ export default async function ScenarioPage({ params, searchParams }: PageProps) 
         <p className="eyebrow">상황추천</p>
         <h1>{roleInfo.name}</h1>
         <p className="muted readable">같은 직무라도 팀 크기와 일정, 우선순위에 따라 추천안이 달라집니다.</p>
+        <PageReturnBadge page={`scenarios-${roleKey}`} label={`${roleInfo.name} 상황추천`} />
         <div className="role-switch mt-md">
           {roles.map((item) => (
             <TrackedLink

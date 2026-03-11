@@ -67,6 +67,7 @@ export default function RootLayout({
               <Link href="/briefings">브리핑</Link>
               <Link href="/scenarios/backend">상황추천</Link>
               <Link href="/watchlist">관심리스트</Link>
+              <Link href="/growth">성장 대시보드</Link>
               <Link href="/insights">인사이트</Link>
               <Link href="/feed.xml">RSS</Link>
               <Link href="/advertising">광고 안내</Link>

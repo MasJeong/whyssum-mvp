@@ -68,6 +68,18 @@ const navItems = [
     ),
   },
   {
+    href: "/growth",
+    label: "성장",
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M4 18h16" />
+        <path d="M7 15l3-3 2.5 2.5L17 9" />
+        <path d="M17 9h-3" />
+        <path d="M17 9v3" />
+      </svg>
+    ),
+  },
+  {
     href: "/insights",
     label: "인사이트",
     icon: (

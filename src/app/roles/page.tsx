@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import AdSlot from "@/components/ad-slot";
+import PageReturnBadge from "@/components/page-return-badge";
 import PageVisitTracker from "@/components/page-visit-tracker";
 import RelatedContentSection from "@/components/related-content-section";
 import TrackedLink from "@/components/tracked-link";
@@ -25,6 +26,7 @@ export default function RolesPage() {
         <p className="eyebrow">직무 허브</p>
         <h1>내 직무 기준으로 먼저 후보를 좁히세요</h1>
         <p className="muted readable">직무를 선택하면 바로 트렌드 상위 후보를 보고, 이어서 상황추천으로 최종안을 압축할 수 있습니다.</p>
+        <PageReturnBadge page="roles" label="직무 허브" />
       </section>
 
       <section className="grid grid-3">

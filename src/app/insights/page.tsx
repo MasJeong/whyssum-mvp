@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import AdSlot from "@/components/ad-slot";
+import PageReturnBadge from "@/components/page-return-badge";
 import PageVisitTracker from "@/components/page-visit-tracker";
 import RelatedContentSection from "@/components/related-content-section";
 import TrackedLink from "@/components/tracked-link";
@@ -25,6 +26,7 @@ export default function InsightsPage() {
         <p className="eyebrow">월간 인사이트</p>
         <h1>요즘 왜 이걸 쓰는지 요약</h1>
         <p className="muted">긴 리포트를 읽기 전에 핵심 변화만 먼저 확인할 수 있도록 가볍게 정리했습니다.</p>
+        <PageReturnBadge page="insights" label="인사이트" />
       </section>
 
       <section className="grid grid-3">
