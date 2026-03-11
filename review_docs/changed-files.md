@@ -279,3 +279,16 @@
   - 스냅샷 공유 URL 생성/복원 및 핵심 이벤트 계측 반영
 - `src/app/page.tsx`, `src/app/roles/page.tsx`, `src/app/trends/[role]/page.tsx`, `src/app/scenarios/[role]/page.tsx`, `src/app/compare/page.tsx`, `src/app/briefings/page.tsx`, `src/app/insights/page.tsx`
   - page_view/CTA 추적 및 관련 콘텐츠 섹션 연결
+
+## 추가 반영 (성장 대시보드 + 재방문 확장)
+
+- `src/app/growth/page.tsx`
+  - D1/D7/D30 KPI 카드와 상위 이벤트 목록을 보여주는 운영 대시보드 추가
+- `src/components/page-return-badge.tsx`
+  - 페이지별 마지막 방문 시각을 localStorage 기준으로 읽어 재방문 배지 노출
+- `src/app/page.tsx`, `src/app/roles/page.tsx`, `src/app/trends/[role]/page.tsx`, `src/app/scenarios/[role]/page.tsx`, `src/app/compare/page.tsx`, `src/app/insights/page.tsx`
+  - 핵심 페이지에 재방문 배지 연결
+- `src/components/nav-links.tsx`, `src/app/layout.tsx`
+  - 상단/푸터에 성장 대시보드 진입 링크 추가
+- `review_docs/growth-experiment-runbook.md`
+  - KPI 운영 cadence, stop/go, rollback 기준 문서화

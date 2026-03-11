@@ -19,6 +19,7 @@
 - `restore-volume-stress-checklist.md`: 복원/볼륨제어 스트레스 검증 시나리오
 - `trust-freshness-copy-guide.md`: 신뢰도/신선도 문구 정렬 가이드
 - `commit-unit-guideline.md`: 커밋 작업 단위 운영 기준
+- `growth-experiment-runbook.md`: 성장 KPI 운영/리뷰 런북
 
 ## 운영 기록 규칙
 
