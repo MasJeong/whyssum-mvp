@@ -1,0 +1,8 @@
+{
+  "scenario": "Invalid snapshot id",
+  "request": "GET /api/snapshots/not-found-id",
+  "status": 404,
+  "response": {
+    "error": "공유 스냅샷을 찾을 수 없습니다."
+  }
+}

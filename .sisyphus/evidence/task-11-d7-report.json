@@ -1,0 +1,16 @@
+{
+  "window": "d7",
+  "sessionCount": 1,
+  "visitorCount": 1,
+  "activationRate": 100,
+  "shareRate": 0,
+  "revisitRate": 0,
+  "adClickThroughRate": 100,
+  "newsletterSubscribeRate": 0,
+  "topEvents": [
+    { "name": "page_view", "count": 1 },
+    { "name": "role_hub_click", "count": 1 },
+    { "name": "ad_impression", "count": 1 },
+    { "name": "ad_click", "count": 1 }
+  ]
+}

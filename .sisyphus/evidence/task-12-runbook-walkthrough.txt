@@ -1,0 +1,8 @@
+Scenario: New operator runbook walkthrough
+Document: review_docs/growth-experiment-runbook.md
+Checklist:
+1) Open /growth and inspect D1/D7/D30 cards
+2) Open /api/growth-kpis?window=d7 and verify payload shape
+3) Review stop/go and rollback rules in runbook
+4) Record evidence files into .sisyphus/evidence/
+Result: walkthrough steps are explicit and executable end-to-end.

@@ -1,0 +1,7 @@
+Scenario: Duplicate rapid clicks are deduplicated
+File: src/components/tracked-link.tsx
+Evidence:
+- CLICK_DEDUPE_WINDOW_MS = 900
+- dedupe key: `${eventName}:${eventPage}:${href}`
+- repeated clicks inside window are skipped by shouldTrackClick()
+Expected result: rapid repeated CTA clicks do not flood growth events.

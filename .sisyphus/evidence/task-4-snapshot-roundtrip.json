@@ -1,0 +1,15 @@
+{
+  "scenario": "Create and resolve snapshot",
+  "createResponse": {
+    "snapshotId": "azz3xg9b",
+    "kind": "compare"
+  },
+  "resolveResponse": {
+    "id": "azz3xg9b",
+    "kind": "compare",
+    "payload": {
+      "role": "backend",
+      "selected": ["Node.js", "Go"]
+    }
+  }
+}

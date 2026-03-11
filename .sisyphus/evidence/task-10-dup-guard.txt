@@ -1,0 +1,8 @@
+Scenario: Ad exposure duplicate guard
+Verification method: Code inspection + behavior contract
+File: src/components/ad-slot.tsx
+Evidence:
+- `loggedImpressionRef` is initialized false.
+- Impression event fires only when `visible && !loggedImpressionRef.current`.
+- `loggedImpressionRef.current` is set true right before logging.
+Conclusion: rapid rerender does not re-log impressions for the same slot mount.

@@ -1,0 +1,8 @@
+{
+  "scenario": "invalid window parameter",
+  "request": "GET /api/growth-kpis?window=bad",
+  "status": 400,
+  "response": {
+    "error": "유효한 KPI window가 아닙니다."
+  }
+}

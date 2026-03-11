@@ -1,0 +1,9 @@
+{
+  "scenario": "Related-content tie-break/documentation verification",
+  "file": "src/lib/related-content.ts",
+  "evidence": {
+    "topN": 3,
+    "tieBreakRule": "score desc, then title asc (ko locale)",
+    "docUpdated": true
+  }
+}

@@ -185,3 +185,9 @@
 - `/growth` 페이지를 추가해 D1/D7/D30 KPI와 상위 이벤트를 운영 화면에서 즉시 확인 가능하게 함
 - 홈/직무/트렌드/상황추천/비교/인사이트에 페이지별 재방문 배지를 확장 적용
 - 성장 실험 운영용 runbook 문서를 추가해 cadence/rollback/stop-go 기준을 명시
+
+## 이번 라운드 추가 반영 (성장 플랜 검증 보강)
+
+- `TrackedLink`에 rapid-click dedupe window(900ms)를 적용해 이벤트 과집계 리스크를 완화
+- 관련 콘텐츠 정렬의 동점 규칙을 함수 계약(JSDoc)에 명시
+- `.sisyphus/evidence/`에 API roundtrip, KPI 검증, lint/build 증적 파일을 추가

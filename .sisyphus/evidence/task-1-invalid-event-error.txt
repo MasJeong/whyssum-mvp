@@ -1,0 +1,4 @@
+Scenario: Invalid growth event payload rejected
+Command: POST /api/growth-events with invalid event name
+Result:
+{"error":"이벤트 형식이 올바르지 않습니다."}

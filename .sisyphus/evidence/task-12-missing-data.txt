@@ -1,0 +1,7 @@
+Scenario: Missing metric data fallback procedure
+Source: review_docs/growth-experiment-runbook.md
+Fallback policy:
+- If KPI shows all zeros, check server restart first.
+- Memory store reset is expected on restart.
+- Resume D1 collection and log "memory reset" in ops notes.
+Result: fallback path is documented and actionable.

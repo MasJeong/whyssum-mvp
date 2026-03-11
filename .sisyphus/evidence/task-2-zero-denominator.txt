@@ -1,0 +1,4 @@
+Scenario: KPI report with zero denominator
+Command: GET /api/growth-kpis?window=d1 on fresh process
+Result:
+{"window":"d1","sessionCount":0,"visitorCount":0,"activationRate":0,"shareRate":0,"revisitRate":0,"adClickThroughRate":0,"newsletterSubscribeRate":0,"topEvents":[]}

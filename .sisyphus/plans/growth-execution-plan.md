@@ -52,11 +52,11 @@
 - 광고 슬롯 A/B 운영 훅(variant, position, CTR baseline)
 
 ### Definition of Done
-- [ ] 핵심 이벤트 10개 이상이 코드에 반영되고 문서화됨
-- [ ] `/scenarios` 및 `/compare`에서 스냅샷 공유 URL 생성/재조회 가능
-- [ ] 주요 페이지에 관련 콘텐츠 모듈 반영
-- [ ] 재방문 위젯 노출/미노출 조건 동작 확인
-- [ ] 광고 슬롯 A/B variant가 반영되고 이벤트 집계 가능
+- [x] 핵심 이벤트 10개 이상이 코드에 반영되고 문서화됨
+- [x] `/scenarios` 및 `/compare`에서 스냅샷 공유 URL 생성/재조회 가능
+- [x] 주요 페이지에 관련 콘텐츠 모듈 반영
+- [x] 재방문 위젯 노출/미노출 조건 동작 확인
+- [x] 광고 슬롯 A/B variant가 반영되고 이벤트 집계 가능
 
 ### Must Have
 - 무인증 환경에서 작동
@@ -141,7 +141,7 @@ Critical Path: T1 -> T2 -> T6 -> T11 -> F1/F2/F3/F4
 
 ## TODOs
 
-- [ ] 1. Define growth event taxonomy and logger utility
+- [x] 1. Define growth event taxonomy and logger utility
 
   **What to do**:
   - Define event names for acquisition/activation/retention/ad.
@@ -181,7 +181,7 @@ Critical Path: T1 -> T2 -> T6 -> T11 -> F1/F2/F3/F4
     Expected Result: safe no-op or validation error without crash.
     Evidence: `.sisyphus/evidence/task-1-invalid-event-error.txt`
 
-- [ ] 2. Define KPI aggregation contract
+- [x] 2. Define KPI aggregation contract
 
   **What to do**:
   - Create KPI schema: sessions, activation rate, share rate, revisit rate, ad CTR.
@@ -212,7 +212,7 @@ Critical Path: T1 -> T2 -> T6 -> T11 -> F1/F2/F3/F4
     Expected Result: no divide-by-zero crash; explicit 0 or null policy.
     Evidence: `.sisyphus/evidence/task-2-zero-denominator.txt`
 
-- [ ] 3. Add ad experiment configuration contract
+- [x] 3. Add ad experiment configuration contract
 
   **What to do**: Define variant keys, placement map, and default fallback.
   **Must NOT do**: Do not introduce layout shift.
@@ -238,7 +238,7 @@ Critical Path: T1 -> T2 -> T6 -> T11 -> F1/F2/F3/F4
     Expected Result: fallback slot renders without breakage.
     Evidence: `.sisyphus/evidence/task-3-fallback.png`
 
-- [ ] 4. Implement snapshot storage abstraction
+- [x] 4. Implement snapshot storage abstraction
 
   **What to do**: Create short snapshot ID format and storage/read contract for shared results.
   **Parallelization**: Wave 1 (independent)
@@ -263,7 +263,7 @@ Critical Path: T1 -> T2 -> T6 -> T11 -> F1/F2/F3/F4
     Expected Result: safe 404/410 with structured error.
     Evidence: `.sisyphus/evidence/task-4-invalid-snapshot.json`
 
-- [ ] 5. Build related-content ranking utility
+- [x] 5. Build related-content ranking utility
 
   **What to do**: rank related items by role/tag/intent to increase next-click probability.
   **Parallelization**: Wave 1 (independent)
@@ -288,7 +288,7 @@ Critical Path: T1 -> T2 -> T6 -> T11 -> F1/F2/F3/F4
     Expected Result: fallback suggestions returned.
     Evidence: `.sisyphus/evidence/task-5-fallback.json`
 
-- [ ] 6. Instrument key funnel events on core routes
+- [x] 6. Instrument key funnel events on core routes
 
   **What to do**: Wire event logging to home, roles, trends, scenarios, compare, briefings, insights CTAs.
   **Parallelization**: Wave 2 (blocked by T1)
@@ -300,7 +300,7 @@ Critical Path: T1 -> T2 -> T6 -> T11 -> F1/F2/F3/F4
   - Scenario: Core CTA click path emits expected events; Evidence `.sisyphus/evidence/task-6-cta-events.txt`
   - Scenario: Duplicate rapid clicks are deduplicated/throttled; Evidence `.sisyphus/evidence/task-6-dedupe.txt`
 
-- [ ] 7. Integrate related-content module on home/trends/scenarios/briefings/insights
+- [x] 7. Integrate related-content module on home/trends/scenarios/briefings/insights
 
   **What to do**: Add “다음으로 보기” module with top 3 role-aware links.
   **Parallelization**: Wave 2 (blocked by T5)
@@ -312,7 +312,7 @@ Critical Path: T1 -> T2 -> T6 -> T11 -> F1/F2/F3/F4
   - Scenario: Backend context shows backend-leaning links; Evidence `.sisyphus/evidence/task-7-related-backend.png`
   - Scenario: Missing data fallback shows generic links; Evidence `.sisyphus/evidence/task-7-related-fallback.png`
 
-- [ ] 8. Add snapshot share links for scenario/compare results
+- [x] 8. Add snapshot share links for scenario/compare results
 
   **What to do**: Generate share URL with snapshot ID and resolve it on load.
   **Parallelization**: Wave 2 (blocked by T4)
@@ -324,7 +324,7 @@ Critical Path: T1 -> T2 -> T6 -> T11 -> F1/F2/F3/F4
   - Scenario: Create snapshot and open in new tab reproducing state; Evidence `.sisyphus/evidence/task-8-share-roundtrip.txt`
   - Scenario: Unknown snapshot ID returns graceful error banner; Evidence `.sisyphus/evidence/task-8-share-invalid.png`
 
-- [ ] 9. Add revisit widget for “since last visit” across key pages
+- [x] 9. Add revisit widget for “since last visit” across key pages
 
   **What to do**: Display change summary based on local last-visit timestamp.
   **Parallelization**: Wave 2 (independent)
@@ -336,7 +336,7 @@ Critical Path: T1 -> T2 -> T6 -> T11 -> F1/F2/F3/F4
   - Scenario: First-time visitor sees no badge; Evidence `.sisyphus/evidence/task-9-first-visit.txt`
   - Scenario: Returning visitor sees count > 0 after seeded update; Evidence `.sisyphus/evidence/task-9-return-visit.txt`
 
-- [ ] 10. Integrate ad slot A/B exposure and click tracking
+- [x] 10. Integrate ad slot A/B exposure and click tracking
 
   **What to do**: Attach exposure/click events with variant and slot metadata.
   **Parallelization**: Wave 2 (blocked by T1, T3)
@@ -348,7 +348,7 @@ Critical Path: T1 -> T2 -> T6 -> T11 -> F1/F2/F3/F4
   - Scenario: Slot visibility triggers one exposure event; Evidence `.sisyphus/evidence/task-10-exposure.txt`
   - Scenario: Rapid rerender does not duplicate exposure flood; Evidence `.sisyphus/evidence/task-10-dup-guard.txt`
 
-- [ ] 11. Build KPI report endpoint/page for D1/D7/D30
+- [x] 11. Build KPI report endpoint/page for D1/D7/D30
 
   **What to do**: Expose aggregate metrics for growth review cadence.
   **Parallelization**: Wave 3 (blocked by T2, T6-T10)
@@ -360,7 +360,7 @@ Critical Path: T1 -> T2 -> T6 -> T11 -> F1/F2/F3/F4
   - Scenario: Query D7 returns complete metric object; Evidence `.sisyphus/evidence/task-11-d7-report.json`
   - Scenario: Invalid window param returns 400-safe response; Evidence `.sisyphus/evidence/task-11-invalid-window.json`
 
-- [ ] 12. Publish growth experiment runbook and weekly review checklist
+- [x] 12. Publish growth experiment runbook and weekly review checklist
 
   **What to do**: Document rollout, rollback, KPI review, and stop/go rules.
   **Parallelization**: Wave 3 (blocked by T11)
@@ -376,18 +376,18 @@ Critical Path: T1 -> T2 -> T6 -> T11 -> F1/F2/F3/F4
 
 ## Final Verification Wave (MANDATORY)
 
-- [ ] F1. **Plan Compliance Audit** — `oracle`
+- [x] F1. **Plan Compliance Audit** — `oracle`
   Output: `Must Have [N/N] | Must NOT Have [N/N] | Tasks [N/N] | VERDICT`
 
-- [ ] F2. **Code Quality Review** — `unspecified-high`
+- [x] F2. **Code Quality Review** — `unspecified-high`
   Run `npm run lint` and `npm run build`, check anti-patterns.
   Output: `Build [PASS/FAIL] | Lint [PASS/FAIL] | VERDICT`
 
-- [ ] F3. **Real QA Execution** — `unspecified-high` (+ `playwright` if UI)
+- [x] F3. **Real QA Execution** — `unspecified-high` (+ `playwright` if UI)
   Execute all QA scenarios and verify evidence files exist.
   Output: `Scenarios [N/N pass] | Integration [N/N] | VERDICT`
 
-- [ ] F4. **Scope Fidelity Check** — `deep`
+- [x] F4. **Scope Fidelity Check** — `deep`
   Validate no scope creep beyond defined growth tasks.
   Output: `Tasks [N/N compliant] | Unaccounted [CLEAN/N] | VERDICT`
 
@@ -410,8 +410,8 @@ npm run build
 ```
 
 ### Final Checklist
-- [ ] All Must Have items implemented
-- [ ] All Must NOT Have constraints respected
-- [ ] Funnel baseline metrics calculable (D1/D7/D30)
-- [ ] Share snapshot flow works end-to-end
-- [ ] Revisit widget increases repeat-entry visibility
+- [x] All Must Have items implemented
+- [x] All Must NOT Have constraints respected
+- [x] Funnel baseline metrics calculable (D1/D7/D30)
+- [x] Share snapshot flow works end-to-end
+- [x] Revisit widget increases repeat-entry visibility

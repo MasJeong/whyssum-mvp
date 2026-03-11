@@ -292,3 +292,12 @@
   - 상단/푸터에 성장 대시보드 진입 링크 추가
 - `review_docs/growth-experiment-runbook.md`
   - KPI 운영 cadence, stop/go, rollback 기준 문서화
+
+## 추가 반영 (플랜 미비점 보완)
+
+- `src/components/tracked-link.tsx`
+  - 동일 CTA 연속 클릭 시 900ms dedupe window를 적용해 이벤트 중복 계측 완화
+- `src/lib/related-content.ts`
+  - 관련 콘텐츠 정렬 동점 규칙(score 동일 시 title 오름차순) 문서화
+- `.sisyphus/evidence/*`
+  - growth plan QA/API/검증 증적 파일 추가
