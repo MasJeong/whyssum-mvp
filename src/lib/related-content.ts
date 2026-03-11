@@ -63,7 +63,7 @@ function buildCandidateLinks(context: RelatedContentContext): RelatedContentLink
 /**
  * 컨텍스트에 따라 관련 링크를 정렬한다.
  * @param context 현재 페이지 컨텍스트
- * @returns 상위 3개 관련 링크
+ * @returns 상위 3개 관련 링크 (동점이면 title 오름차순으로 고정)
  */
 export function getRelatedContentLinks(context: RelatedContentContext) {
   const candidates = buildCandidateLinks(context);
