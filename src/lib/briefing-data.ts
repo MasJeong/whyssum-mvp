@@ -16,6 +16,8 @@ export type BriefingItem = {
   relatedTool: string;
 };
 
+export type BriefingSortBy = "publishedAt" | "priority";
+
 export const briefingItems: BriefingItem[] = [
   {
     id: "bf-001",
@@ -120,10 +122,51 @@ type FilterParams = {
   role?: string | null;
   impact?: string | null;
   periodDays?: number;
+  sortBy?: BriefingSortBy;
 };
 
 /**
- * 직무/영향도/기간 조건으로 브리핑 목록을 필터링하고 최신순 정렬한다.
+ * 영향도 코드를 정렬 우선순위 숫자로 변환한다.
+ * @param impact 영향도 코드
+ * @returns high > medium > low 정렬용 숫자
+ */
+function getImpactRank(impact: BriefingImpact) {
+  if (impact === "high") return 3;
+  if (impact === "medium") return 2;
+  return 1;
+}
+
+/**
+ * 브리핑 정렬 기준을 안전한 허용값으로 정규화한다.
+ * @param value 원본 정렬 문자열
+ * @returns 허용 정렬 기준 또는 기본값(priority)
+ */
+export function parseBriefingSortBy(value?: string | null): BriefingSortBy {
+  return value === "publishedAt" ? "publishedAt" : "priority";
+}
+
+/**
+ * 브리핑 목록을 정렬 기준에 맞게 정렬한다.
+ * @param items 정렬할 브리핑 목록
+ * @param sortBy 정렬 기준
+ * @returns 정렬된 브리핑 목록
+ */
+export function sortBriefings(items: BriefingItem[], sortBy: BriefingSortBy) {
+  return [...items].sort((left, right) => {
+    if (sortBy === "publishedAt") {
+      return new Date(right.publishedAt).getTime() - new Date(left.publishedAt).getTime();
+    }
+
+    const impactCompared = getImpactRank(right.impact) - getImpactRank(left.impact);
+    if (impactCompared !== 0) {
+      return impactCompared;
+    }
+    return new Date(right.publishedAt).getTime() - new Date(left.publishedAt).getTime();
+  });
+}
+
+/**
+ * 직무/영향도/기간 조건으로 브리핑 목록을 필터링하고 정렬한다.
  * @param params 필터 조건
  * @returns 조건에 맞는 브리핑 목록
  */
@@ -131,7 +174,7 @@ export function filterBriefings(params: FilterParams) {
   const now = Date.now();
   const maxAgeMs = params.periodDays ? params.periodDays * 24 * 60 * 60 * 1000 : null;
 
-  return briefingItems
+  const filtered = briefingItems
     .filter((item) => {
       if (params.role && params.role !== "all") {
         if (!(item.role === params.role || item.role === "all")) {
@@ -151,6 +194,7 @@ export function filterBriefings(params: FilterParams) {
       }
 
       return true;
-    })
-    .sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
+    });
+
+  return sortBriefings(filtered, params.sortBy ?? "priority");
 }

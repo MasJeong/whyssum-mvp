@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { filterBriefings } from "@/lib/briefing-data";
+import { filterBriefings, parseBriefingSortBy } from "@/lib/briefing-data";
 import { checkRateLimit, getClientIp } from "@/lib/security/rate-limit";
 
 const RATE_LIMIT_WINDOW_MS = 60_000;
@@ -62,15 +62,16 @@ export async function GET(request: Request) {
   const url = new URL(request.url);
   const role = url.searchParams.get("role");
   const impact = url.searchParams.get("impact");
+  const sortBy = parseBriefingSortBy(url.searchParams.get("sortBy"));
   const periodRaw = Number(url.searchParams.get("periodDays") ?? "30");
   // 조회 기간은 과도한 조회/비정상 값을 막기 위해 1~180일로 제한한다.
   const periodDays = Number.isFinite(periodRaw) ? Math.max(1, Math.min(180, periodRaw)) : 30;
 
-  const items = filterBriefings({ role, impact, periodDays });
+  const items = filterBriefings({ role, impact, periodDays, sortBy });
   const summary = buildBriefingSummary(items);
 
   const response = NextResponse.json({
-    filters: { role: role ?? "all", impact: impact ?? "all", periodDays },
+    filters: { role: role ?? "all", impact: impact ?? "all", periodDays, sortBy },
     count: items.length,
     fetchedAt: new Date().toISOString(),
     summary,
