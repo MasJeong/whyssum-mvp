@@ -18,6 +18,7 @@
 12. `src/lib/security/rate-limit.ts`
 13. `src/lib/security/validation.ts`
 14. `src/lib/mvp-data.ts`
+15. `src/lib/trend-schedule-store.ts`
 
 위 6개만 보면, 데이터 요청/검증/가공/응답까지 핵심 로직을 거의 다 파악할 수 있습니다.
 
@@ -83,6 +84,21 @@
   - 브리핑 카드 배열
   - 적용 필터
   - count, fetchedAt
+  - summary(`highImpactCount`, `recentCount7d`, `recommendedRole`)
+  - filters.sortBy (`priority` | `publishedAt`)
+
+### C-1. 트렌드 스케줄 API
+
+- 경로:
+  - `GET /api/trends/schedule`
+  - `POST /api/trends/schedule`
+- 파일:
+  - `src/app/api/trends/schedule/route.ts`
+  - `src/lib/trend-schedule-store.ts`
+- 동작:
+  - 최근 실행 상태(lastRunAt/lastDurationMs/lastSuccess/lastResults) 조회
+  - 최근 실행 이력(`history`)과 저장 모드(`persistenceMode`) 반환
+  - 실패 또는 fallback 실행 시 `TRENDS_ALERT_WEBHOOK_URL` 웹훅 알림 시도
 
 ### D. 구독 API
 
