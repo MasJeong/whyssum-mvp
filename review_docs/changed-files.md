@@ -301,3 +301,16 @@
   - 관련 콘텐츠 정렬 동점 규칙(score 동일 시 title 오름차순) 문서화
 - `.sisyphus/evidence/*`
   - growth plan QA/API/검증 증적 파일 추가
+
+## 추가 반영 (브리핑 허브 + 스케줄 운영 보강)
+
+- `src/lib/briefing-data.ts`, `src/app/api/briefings/route.ts`
+  - 브리핑 정렬 기준을 서버(`priority` 기본)로 통합하고 summary/filters 응답을 확장
+- `src/components/briefing-board.tsx`
+  - 브리핑 상단 핵심 요약, 빈 상태 복구 액션, 성장 이벤트 계측, 액션 우선순위(상황추천 우선) 반영
+- `src/lib/growth-events.ts`
+  - 브리핑 허브 계측 이벤트(`briefing_view`, `briefing_filter_change`, `briefing_card_action_click`, `briefing_empty_state_recover`) 추가
+- `src/lib/trend-schedule-store.ts`, `src/app/api/trends/schedule/route.ts`
+  - 트렌드 스케줄 최근 실행 이력 저장/조회 및 웹훅 알림 상태 반환 추가
+- `review_docs/requirements.md`, `review_docs/cautions.md`, `review_docs/backend-review-guide.md`, `review_docs/trend-schedule-cron-operations.md`
+  - 운영/검증 문서 최신화

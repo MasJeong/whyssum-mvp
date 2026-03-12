@@ -20,6 +20,7 @@
 ## 환경 변수
 
 - `TRENDS_CRON_SECRET`: 크론 호출 인증 키
+- `TRENDS_ALERT_WEBHOOK_URL`: 실패/fallback 실행 시 알림을 받을 운영 웹훅(선택)
 
 ## GitHub Actions Cron 예시
 
@@ -59,7 +60,7 @@ jobs:
 
 3. **상태 조회 확인**
    - 동작: `GET /api/trends/schedule`
-   - 기대: `lastRunAt`, `lastDurationMs`, `lastSuccess`, `lastResults` 갱신
+   - 기대: `lastRunAt`, `lastDurationMs`, `lastSuccess`, `lastResults`, `history`, `persistenceMode` 갱신
 
 4. **부분 fallback 관측 확인**
    - 동작: 외부 API 실패 상황(레이트리밋)에서 실행
@@ -70,9 +71,10 @@ jobs:
 - 최근 24시간 내 최소 1회 `lastSuccess=true`가 확인되는가
 - `lastDurationMs`가 급격히 증가하지 않았는가
 - `lastResults`에서 특정 role만 반복 fallback되는가
+- `history[0].alertStatus`가 실패 없이 기대대로 갱신되는가
 - 장애 시 수동 트리거(`workflow_dispatch`)로 복구 가능한가
 
 ## 주의사항
 
-- 상태는 메모리 기반이라 서버 재시작 시 초기화된다.
-- 영구 이력/알림은 후속 라운드(DB + Slack/Webhook)로 확장한다.
+- 실행 이력은 파일 저장을 우선 시도하고, 실패 시 메모리 모드로 자동 폴백된다.
+- 웹훅 알림은 선택 사항이며, 미설정 시 `alertStatus: skipped`가 정상이다.
